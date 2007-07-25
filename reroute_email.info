@@ -1,0 +1,4 @@
+; $Id$
+name = Reroute emails
+description = Reroutes emails send from the site to a predefined email. Useful for test sites.
+package = Development

@@ -1,0 +1,39 @@
+<?php
+
+// $Id$
+
+define('REROUTE_EMAIL_ADDRESS', 'reroute_email_address');
+
+function reroute_email_menu($may_cache) {
+  $items = array();
+
+  if ($may_cache) {
+    $items[] = array(
+      'path'               => 'admin/settings/reroute_email',
+      'title'              => t('Reroute Email'),
+      'description'        => t('Reroute emails to a test address.'),
+      'callback'           => 'drupal_get_form',
+      'callback arguments' => array('reroute_email_settings'),
+      'type'               => MENU_NORMAL_ITEM,
+    );
+  }
+
+  return $items;
+}
+
+function reroute_email_settings() {
+  $form[REROUTE_EMAIL_ADDRESS] = array(
+    '#type'          => 'textfield',
+    '#title'         => t('Email address'),
+    '#required'      => TRUE,
+    '#default_value' => variable_get(REROUTE_EMAIL_ADDRESS, ini_get('sendmail_from')),
+    '#size'          => 35,
+    '#description'   => t('The email address to reroute all emails from the site to.')
+  );
+
+  return system_settings_form($form);
+}
+
+function reroute_email_mail_alter(&$mailkey, &$to, &$subject, &$body, &$from, &$headers) {
+  $to = variable_get(REROUTE_EMAIL_ADDRESS, ini_get('sendmail_from'));
+}
