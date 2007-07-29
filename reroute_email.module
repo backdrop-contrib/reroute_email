@@ -35,5 +35,11 @@ function reroute_email_settings() {
 }
 
 function reroute_email_mail_alter(&$mailkey, &$to, &$subject, &$body, &$from, &$headers) {
+  $msg  = "This email was rerouted.\n";
+  $msg .= "Mail key: <@key>\n";
+  $msg .= "Originally to: <@to>\n";
+  $msg .= "-----------------------\n";
+
   $to = variable_get(REROUTE_EMAIL_ADDRESS, ini_get('sendmail_from'));
+  $body = t($msg, array('@to' => $to, '@key' => $mailkey)) . $body;
 }
