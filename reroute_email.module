@@ -3,7 +3,6 @@
 // $Id$
 
 define('REROUTE_EMAIL_ADDRESS',  'reroute_email_address');
-define('REROUTE_EMAIL_DEV_NULL', 'reroute_email_dev_null');
 
 function reroute_email_menu($may_cache) {
   $items = array();
@@ -23,13 +22,6 @@ function reroute_email_menu($may_cache) {
 }
 
 function reroute_email_settings() {
-  $form[REROUTE_EMAIL_DEV_NULL] = array(
-    '#type'          => 'checkbox',
-    '#title'         => t('Disable all mails'),
-    '#default_value' => variable_get(REROUTE_EMAIL_DEV_NULL, FALSE),
-    '#description'   => t('Check this to disable all outgoing email from this web site.'),
-  );
-
   $form[REROUTE_EMAIL_ADDRESS] = array(
     '#type'          => 'textfield',
     '#title'         => t('Email address'),
@@ -45,10 +37,6 @@ function reroute_email_settings() {
 function reroute_email_mail_alter(&$mailkey, &$to, &$subject, &$body, &$from, &$headers) {
   global $base_url;
 
-  if (variable_get(REROUTE_EMAIL_DEV_NULL, FALSE)) {
-    return;
-  }
-
   // Format a message to show at the top
   $msg  = "This email was rerouted.\n";
   $msg .= "Web site: @site\n";
@@ -59,7 +47,7 @@ function reroute_email_mail_alter(&$mailkey, &$to, &$subject, &$body, &$from, &$
   // Prepend to the body of the email
   $body = t($msg, array('@site' => $base_url, '@to' => $to, '@key' => $mailkey)) . $body;
 
-  // Now change the $to address to be the one we defined
+  // Change the $to address to be the one we defined
   $to = variable_get(REROUTE_EMAIL_ADDRESS, ini_get('sendmail_from'));
 }
 
