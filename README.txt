@@ -34,8 +34,6 @@ To enable this module do the following:
 2. Go to Admin -> Settings -> Reroute email, and enter an email address
    to route all email to.
 
-3. Go to Admin -> Access Control and enable viewing for the roles you want.
-
 Bugs/Features/Patches:
 ----------------------
 If you want to report bugs, feature requests, or submit a patch, please do so
