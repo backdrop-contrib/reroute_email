@@ -34,6 +34,21 @@ To enable this module do the following:
 2. Go to Admin -> Settings -> Reroute email, and enter an email address
    to route all email to.
 
+Tips and Tricks
+---------------
+Recent versions of reroute_email 6.x-1.x-dev have a new variable that you
+can directly use in the settings.php file of a site. This is useful for
+moving sites from live to test and vice versa.
+
+To use this variable, you add the following line in the settings.php file
+for the test environment:
+
+  $conf['reroute_email_enable'] = 1;
+
+And for the live site, you set it as follows:
+
+  $conf['reroute_email_enable'] = 0;
+
 Bugs/Features/Patches:
 ----------------------
 If you want to report bugs, feature requests, or submit a patch, please do so
