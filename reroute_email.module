@@ -1,23 +1,35 @@
 <?php
-
 // $Id$
 
+/**
+ * @file
+ * Reroute Email module
+ */
+
 define('REROUTE_EMAIL_ADDRESS', 'reroute_email_address');
-define('REROUTE_EMAIL_ENABLE',  'reroute_email_enable');
+define('REROUTE_EMAIL_ENABLE',   'reroute_email_enable');
 
 /**
- * Implementation of hook_perm().
+ * Implements of hook_permission().
  */
-function reroute_email_perm() {
-  return array('administer reroute email');
+function reroute_email_permission() {
+  return array(
+    'administer reroute email' =>  array(
+      'title' => t('Administer Reroute Email'),
+      'description' => t('Administer the Reroute Email module.'),
+    ),
+  );
 }
 
+/**
+ * Implements hook_menu().
+ */
 function reroute_email_menu() {
   $items = array();
 
-  $items['admin/settings/reroute_email'] = array(
-    'title'              => t('Reroute Email'),
-    'description'        => t('Reroute emails to a test address.'),
+  $items['admin/config/development/reroute_email'] = array(
+    'title'              => 'Reroute Email',
+    'description'        => 'Reroute emails to a test address.',
     'page callback'      => 'drupal_get_form',
     'page arguments'     => array('reroute_email_settings'),
     'access arguments'   => array('administer reroute email'),
