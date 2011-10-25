@@ -53,7 +53,7 @@ function reroute_email_settings() {
   $form[REROUTE_EMAIL_ENABLE] = array(
     '#type'          => 'checkbox',
     '#title'         => t('Enable routing'),
-    '#default_value' => variable_get(REROUTE_EMAIL_ENABLE, 1),
+    '#default_value' => variable_get(REROUTE_EMAIL_ENABLE, 0),
     '#description'   => t('Check this box if you want to enable email rerouting. Uncheck to disable rerouting.'),
   );
 
@@ -66,7 +66,7 @@ function reroute_email_settings() {
  *   An array containing message with keys like 'to', 'from', 'body'.
  */
 function reroute_email_mail_alter(&$message) {
-  if (variable_get(REROUTE_EMAIL_ENABLE, 1)) {
+  if (variable_get(REROUTE_EMAIL_ENABLE, 0)) {
     global $base_url;
 
     if (!variable_get(REROUTE_EMAIL_ADDRESS, '')) {
