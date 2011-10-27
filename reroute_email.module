@@ -53,13 +53,19 @@ function reroute_email_settings() {
     '#type'          => 'textfield',
     '#title'         => t('Email addresses'),
     '#default_value' => variable_get(REROUTE_EMAIL_ADDRESS, ini_get('sendmail_from')),
-    '#description'   => t('Provide a list of email addresses to pass through. Every destination email address which is not on this list will be rerouted to the first address on the list.')
+    '#description'   => t('Provide a list of email addresses to pass through. Every destination email address which is not on this list will be rerouted to the first address on the list.'),
+    '#states' => array(
+      'visible' => array(':input[name=reroute_email_enable]' => array('checked' => TRUE)),
+    ),
   );
   $form[REROUTE_EMAIL_ENABLE_MESSAGE] = array(
     '#type' => 'checkbox',
     '#title' => t('Show rerouting description in mail body'),
     '#default_value' => variable_get(REROUTE_EMAIL_ENABLE_MESSAGE, 1),
     '#description' => t('Check this box if you want a message to be inserted into the email body when the mail is being rerouted. Otherwise, SMTP headers will be used to describe the rerouting. If sending rich-text email, leave this unchecked so that the body of the email will not be disturbed.'),
+    '#states' => array(
+      'visible' => array(':input[name=reroute_email_enable]' => array('checked' => TRUE)),
+    ),
   );
 
   return system_settings_form($form);
