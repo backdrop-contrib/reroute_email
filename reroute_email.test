@@ -55,7 +55,6 @@ class RerouteEmailTestCase extends DrupalWebTestCase {
     $this->assertText(t("Your message has been sent"));
     $mails = $this->drupalGetMails();
     $mail = end($mails);
-    debug($mail, '$mail');
     $this->assertMail('to', $reroute_destination, t("Email was rerouted to @address", array('@address' => $reroute_destination)));
     $searchFor = t("Originally to: @to", array('@to' => $original_destination));
     $hasInfo = preg_match("/$searchFor/", $mail['body']);
@@ -120,7 +119,6 @@ class RerouteEmailTestCase extends DrupalWebTestCase {
     $this->assertText(t("Your message has been sent"));
     $mails = $this->drupalGetMails();
     $mail = end($mails);
-    debug($mail, '$mail with no body injection');
     // There should be nothing in the body except the contact message - no
     // body injection like 'Originally to'.
     $this->assertTrue(strpos($mail['body'], 'Originally to') === FALSE, t('Body does not contain "Originally to"'));

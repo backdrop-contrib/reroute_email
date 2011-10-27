@@ -9,6 +9,11 @@ define('REROUTE_EMAIL_ADDRESS', 'reroute_email_address');
 define('REROUTE_EMAIL_ENABLE_MESSAGE', 'reroute_email_enable_message');
 define('REROUTE_EMAIL_ENABLE',  'reroute_email_enable');
 
+// Regular expression used to split email addresses provided in form.
+// This allows the use of any number of spaces, commas, or semicolons
+// between email addresses.
+define('EMAIL_SPLIT_RE', '/[\s,;]+/');
+
 
 /**
  * Implements of hook_permission().
@@ -53,7 +58,7 @@ function reroute_email_settings() {
     '#type'          => 'textfield',
     '#title'         => t('Email addresses'),
     '#default_value' => variable_get(REROUTE_EMAIL_ADDRESS, ini_get('sendmail_from')),
-    '#description'   => t('Provide a list of email addresses to pass through. Every destination email address which is not on this list will be rerouted to the first address on the list.'),
+    '#description'   => t('Provide a space, comma, or semicolon-delimited list of email addresses to pass through. Every destination email address which is not on this list will be rerouted to the first address on the list.'),
     '#states' => array(
       'visible' => array(':input[name=reroute_email_enable]' => array('checked' => TRUE)),
     ),
@@ -69,6 +74,21 @@ function reroute_email_settings() {
   );
 
   return system_settings_form($form);
+}
+
+/**
+ * Validation callback for reroute_email_settings() form.
+ */
+function reroute_email_settings_validate($form, $form_state) {
+  if ($form_state['values']['reroute_email_enable'] == TRUE) {
+    // Allow splitting emails by space, comma, semicolon.
+    $addresslist = preg_split(EMAIL_SPLIT_RE, $form_state['values']['reroute_email_address'], -1, PREG_SPLIT_NO_EMPTY);
+    foreach ($addresslist as $address) {
+      if(!valid_email_address($address)) {
+        form_set_error('reroute_email_address', t('@address is not a valid email address', array('@address' => $address)));
+      }
+    }
+  }
 }
 
 /**
@@ -112,7 +132,7 @@ function reroute_email_mail_alter(&$message) {
     }
 
     // Split the address string on whitespace, ignoring any empty results
-    $addresslist = preg_split('/\s/', variable_get(REROUTE_EMAIL_ADDRESS, ini_get('sendmail_from')), -1, PREG_SPLIT_NO_EMPTY);
+    $addresslist = preg_split(EMAIL_SPLIT_RE, variable_get(REROUTE_EMAIL_ADDRESS, ini_get('sendmail_from')), -1, PREG_SPLIT_NO_EMPTY);
 
     if (!in_array($to, $addresslist)) {
       // Not on the list, so reroute to the first address in the list
