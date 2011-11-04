@@ -141,15 +141,22 @@ function reroute_email_mail_alter(&$message) {
 
       if (variable_get(REROUTE_EMAIL_ENABLE_MESSAGE, 1)) {
         // Format a message to show at the top
-        $msg[] = t("This email was rerouted.");
-        $msg[] = t("Web site: @site", array('@site' => $base_url));
-        $msg[] = t("Mail key: @key", array('@key' => $mailkey));
-        $msg[] = t("Originally to: @to", array('@to' => $to));
-        $msg[] = "-----------------------";
+        $msg = t("This email was rerouted.") . "\n";
+        $msg .= t("Web site: @site", array('@site' => $base_url)) . "\n";
+        $msg .= t("Mail key: @key", array('@key' => $mailkey)) . "\n";
+        $msg .= t("Originally to: @to", array('@to' => $to)) . "\n";
+        $msg .= "-----------------------" . "\n";
 
-        // Prepend to the body of the email
-        // -- I really think we should simply this a bit -- Khalid
-        $message['body'] = array_merge($msg, isset($message['body']) ? (is_array($message['body']) ? $message['body'] : array($message['body'])) : array());
+        // Prepend explanation message to the body of the email. This must be
+        // handled differently depending on whether the body came in as a
+        // string or an array. If it came in as a string (despite the fact it
+        // should be an array) we'll respect that and leave it as a string.
+        if (is_string($message['body'])) {
+          $message['body'] = $msg . $message['body'];
+        }
+        else {
+          array_unshift($message['body'], $msg);
+        }
       }
     }
   }
