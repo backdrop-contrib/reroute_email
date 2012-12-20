@@ -2,6 +2,7 @@ name = Reroute emails
 description = Reroutes emails send from the site to a predefined email. Useful for test sites.
 package = Development
 core = "7.x"
+configure = admin/config/development/reroute_email
 
 files[] = reroute_email.module
 files[] = reroute_email.test
