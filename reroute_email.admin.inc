@@ -45,7 +45,7 @@ function reroute_email_settings_validate($form, $form_state) {
     // Allow splitting emails by space, comma, semicolon.
     $addresslist = preg_split(EMAIL_SPLIT_RE, $form_state['values']['reroute_email_address'], -1, PREG_SPLIT_NO_EMPTY);
     foreach ($addresslist as $address) {
-      if(!valid_email_address($address)) {
+      if (!valid_email_address($address)) {
         form_set_error('reroute_email_address', t('@address is not a valid email address', array('@address' => $address)));
       }
     }

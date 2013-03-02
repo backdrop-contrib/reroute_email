@@ -3,11 +3,14 @@
 /**
  * @file
  * Test the Reroute Email module.
- *
  */
-class RerouteEmailTestCase extends DrupalWebTestCase {
-  protected $admin_user;
 
+class RerouteEmailTestCase extends DrupalWebTestCase {
+  protected $adminUser;
+
+  /**
+   * Implements DrupalWebTestCase::getInfo().
+   */
   public static function getInfo() {
     return array(
       'name' => 'Reroute Email test',
@@ -19,9 +22,13 @@ class RerouteEmailTestCase extends DrupalWebTestCase {
   /**
    * Enable modules and create user with specific permissions.
    */
-  function setUp() {
+  public function setUp() {
     parent::setUp('reroute_email', 'contact');
-    $this->admin_user = $this->drupalCreateUser(array('administer contact forms', 'access site-wide contact form', 'administer reroute email'));
+    $this->adminUser = $this->drupalCreateUser(array(
+      'administer contact forms',
+      'access site-wide contact form',
+      'administer reroute email',
+    ));
   }
 
   /**
@@ -30,12 +37,12 @@ class RerouteEmailTestCase extends DrupalWebTestCase {
    * @todo: There are enough of these now that they can be refactored into
    * some decent utility functions, instead of all this copy and paste.
    */
-  function testBasicNotification() {
+  public function testBasicNotification() {
     $reroute_destination = "rerouted@example.com";
     $original_destination = "original@example.com";
     $additional_destination = "additional@example.com";
     // Login the admin user.
-    $this->drupalLogin($this->admin_user);
+    $this->drupalLogin($this->adminUser);
 
     // Configure to reroute normally to rerouted@example.com.
     $post = array(
@@ -51,19 +58,19 @@ class RerouteEmailTestCase extends DrupalWebTestCase {
 
     // Go to the contact page and send an email.
     $post = array('subject' => "Test test test", 'message' => 'This is a test');
-        $this->drupalPost("contact", $post, t("Send message"));
+    $this->drupalPost("contact", $post, t("Send message"));
     $this->assertText(t("Your message has been sent"));
     $mails = $this->drupalGetMails();
     $mail = end($mails);
     $this->assertMail('to', $reroute_destination, t("Email was rerouted to @address", array('@address' => $reroute_destination)));
-    $searchFor = t("Originally to: @to", array('@to' => $original_destination));
-    $hasInfo = preg_match("/$searchFor/", $mail['body']);
-    $this->assertTrue($hasInfo, t('Found the correct "Originally to" line in the body'));
+    $search_for = t("Originally to: @to", array('@to' => $original_destination));
+    $has_info = preg_match("/$search_for/", $mail['body']);
+    $this->assertTrue($has_info, t('Found the correct "Originally to" line in the body'));
     $this->verbose(t("Email body was:") . print_r("<pre>{$mail['body']}</pre>", TRUE));
     $this->assertTrue(strpos($mail['body'], 'Originally to') !== FALSE, t('Body does contain "Originally to"'));
 
-    // Now try sending to one of the additional email addresses that should not be rerouted.
-    // Configure two email addresses in reroute form.
+    // Now try sending to one of the additional email addresses that should
+    // not be rerouted. Configure two email addresses in reroute form.
     // Body injection is still turned on.
     $post = array(
       'reroute_email_enable' => TRUE,
@@ -84,8 +91,8 @@ class RerouteEmailTestCase extends DrupalWebTestCase {
     $mail = end($mails);;
     $this->assertMail('to', $additional_destination, t("Email was not rerouted because destination was in whitelist"));
 
-
-    // Now change the configuration to disable reroute and set the original email recipients.
+    // Now change the configuration to disable reroute and set the original
+    // email recipients.
     $post = array(
       'reroute_email_enable' => FALSE,
       'reroute_email_address' => $reroute_destination,

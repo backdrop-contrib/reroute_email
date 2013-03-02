@@ -7,7 +7,7 @@
 
 define('REROUTE_EMAIL_ADDRESS', 'reroute_email_address');
 define('REROUTE_EMAIL_ENABLE_MESSAGE', 'reroute_email_enable_message');
-define('REROUTE_EMAIL_ENABLE',  'reroute_email_enable');
+define('REROUTE_EMAIL_ENABLE', 'reroute_email_enable');
 
 // Regular expression used to split email addresses provided in form.
 // This allows the use of any number of spaces, commas, or semicolons
@@ -20,7 +20,7 @@ define('EMAIL_SPLIT_RE', '/[\s,;]+/');
  */
 function reroute_email_permission() {
   return array(
-    'administer reroute email' =>  array(
+    'administer reroute email' => array(
       'title' => t('Administer Reroute Email'),
       'description' => t('Administer the Reroute Email module.'),
     ),
@@ -46,7 +46,9 @@ function reroute_email_menu() {
 }
 
 /**
- * Implements hook_mail_alter() to change the destination of outgoing emails.
+ * Implements hook_mail_alter().
+ * This hook is required to change the destination of outgoing emails.
+ *
  * @param array $message
  *   An array containing message with keys like 'to', 'from', 'body'.
  */
@@ -73,7 +75,7 @@ function reroute_email_mail_alter(&$message) {
     $message['headers']['X-Rerouted-Mail-Key'] = $mailkey;
     $message['headers']['X-Rerouted-Website'] = $base_url;
 
-    // Suppress Bcc and Cc fields otherwise email will still go out to those addresses
+    // Unset Bcc and Cc fields to prevent emails from going to those addresses.
     if (isset($message['headers']) && is_array($message['headers'])) {
       if (isset($message['headers']['Bcc'])) {
         $message['headers']['X-Rerouted-Original-Bcc'] = $message['headers']['Bcc'];
@@ -85,21 +87,21 @@ function reroute_email_mail_alter(&$message) {
       }
     }
 
-    // Split the address string on whitespace, ignoring any empty results
+    // Split the address string on whitespace, ignoring any empty results.
     $addresslist = preg_split(EMAIL_SPLIT_RE, variable_get(REROUTE_EMAIL_ADDRESS, ini_get('sendmail_from')), -1, PREG_SPLIT_NO_EMPTY);
 
     if (!in_array($to, $addresslist)) {
-      // Not on the list, so reroute to the first address in the list
+      // Not on the list, so reroute to the first address in the list.
       $message['headers']['X-Rerouted-Original-To'] = $to;
       $message['to'] = $addresslist[0];
 
       if (variable_get(REROUTE_EMAIL_ENABLE_MESSAGE, 1)) {
-        // Format a message to show at the top
+        // Format a message to show at the top.
         $msg = t("This email was rerouted.") . "\n";
         $msg .= t("Web site: @site", array('@site' => $base_url)) . "\n";
         $msg .= t("Mail key: @key", array('@key' => $mailkey)) . "\n";
         $msg .= t("Originally to: @to", array('@to' => $to)) . "\n";
-        $msg .= "-----------------------" . "\n";
+        $msg .= "-----------------------\n";
 
         // Prepend explanation message to the body of the email. This must be
         // handled differently depending on whether the body came in as a
@@ -115,4 +117,3 @@ function reroute_email_mail_alter(&$message) {
     }
   }
 }
-
