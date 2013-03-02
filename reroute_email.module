@@ -47,10 +47,8 @@ function reroute_email_menu() {
 
 /**
  * Implements hook_mail_alter().
- * This hook is required to change the destination of outgoing emails.
  *
- * @param array $message
- *   An array containing message with keys like 'to', 'from', 'body'.
+ * This hook is required to change the destination of outgoing emails.
  */
 function reroute_email_mail_alter(&$message) {
   if (variable_get(REROUTE_EMAIL_ENABLE, 0)) {
