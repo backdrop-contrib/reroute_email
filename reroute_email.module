@@ -67,8 +67,8 @@ function reroute_email_mail_alter(&$message) {
       return;
     }
 
-    $mailkey = isset($message['id']) ? $message['id'] : t('<mail id> is missing');
-    $to = isset($message['to']) ? $message['to'] : t('<to> is missing');
+    $mailkey = isset($message['id']) ? $message['id'] : t('[mail id] is missing');
+    $to = isset($message['to']) ? $message['to'] : t('[to] is missing');
 
     $message['headers']['X-Rerouted-Mail-Key'] = $mailkey;
     $message['headers']['X-Rerouted-Website'] = $base_url;
