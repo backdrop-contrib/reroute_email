@@ -51,3 +51,53 @@ function reroute_email_settings_validate($form, $form_state) {
     }
   }
 }
+
+/**
+ * Form for sending test messages.
+ */
+function reroute_email_test_email_form() {
+  return array(
+    'addresses' => array(
+      '#type' => 'fieldset',
+      'to' => array(
+        '#type' => 'textfield',
+        '#title' => t('To'),
+        '#required' => TRUE,
+      ),
+      'cc' => array(
+        '#type' => 'textfield',
+        '#title' => t('Cc'),
+      ),
+      'bcc' => array(
+        '#type' => 'textfield',
+        '#title' => t('Bcc'),
+      ),
+    ),
+    'subject' => array(
+      '#type' => 'textfield',
+      '#title' => t('Subject'),
+      '#default_value' => t('Reroute Email Test'),
+    ),
+    'body' => array(
+      '#type' => 'textarea',
+      '#title' => t('Body'),
+    ),
+    'submit' => array(
+      '#type' => 'submit',
+      '#value' => t('Send email'),
+    ),
+  );
+}
+
+/**
+ * Submit handler for email test.
+ */
+function reroute_email_test_email_form_submit(&$form, &$form_state) {
+  $to = $form_state['values']['to'];
+  $param_keys = array('cc', 'bcc', 'subject', 'body');
+  $params = array_intersect_key($form_state['values'], array_flip($param_keys));
+  $message = drupal_mail('reroute_email', 'test_email_form', $to, language_default(), $params);
+  if (!empty($message['result'])) {
+    drupal_set_message(t("Test email submitted for delivery."));
+  }
+}

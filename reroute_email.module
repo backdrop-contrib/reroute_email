@@ -34,11 +34,27 @@ function reroute_email_menu() {
   $items = array();
 
   $items['admin/config/development/reroute_email'] = array(
-    'title'              => 'Reroute Email',
-    'description'        => 'Reroute emails to a test address.',
-    'page callback'      => 'drupal_get_form',
-    'page arguments'     => array('reroute_email_settings'),
-    'access arguments'   => array('administer reroute email'),
+    'title' => 'Reroute Email',
+    'description' => 'Reroute emails to a test address.',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('reroute_email_settings'),
+    'access arguments' => array('administer reroute email'),
+    'file' => 'reroute_email.admin.inc',
+  );
+
+  $items['admin/config/development/reroute_email/settings'] = array(
+    'title' => 'Settings',
+    'type' => MENU_DEFAULT_LOCAL_TASK,
+    'weight' => -10,
+  );
+
+  $items['admin/config/development/reroute_email/test'] = array(
+    'title' => 'Test email form',
+    'type' => MENU_LOCAL_TASK,
+    'description' => 'Form for sending test email.',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('reroute_email_test_email_form'),
+    'access arguments' => array('administer reroute email'),
     'file' => 'reroute_email.admin.inc',
   );
 
@@ -126,4 +142,17 @@ function reroute_email_mail_alter(&$message) {
       }
     }
   }
+}
+
+/**
+ * Implements hook_mail().
+ */
+function reroute_email_mail($key, &$message, $params) {
+  if ($key != 'test_email_form') {
+    return;
+  }
+  $message['headers']['Cc'] = $params['cc'];
+  $message['headers']['Bcc'] = $params['bcc'];
+  $message['subject'] = $params['subject'];
+  $message['body'][] = $params['body'];
 }
