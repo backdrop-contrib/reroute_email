@@ -75,13 +75,25 @@ function reroute_email_mail_alter(&$message) {
 
     // Unset Bcc and Cc fields to prevent emails from going to those addresses.
     if (isset($message['headers']) && is_array($message['headers'])) {
-      if (isset($message['headers']['Bcc'])) {
-        $message['headers']['X-Rerouted-Original-Bcc'] = $message['headers']['Bcc'];
-        unset($message['headers']['Bcc']);
+
+      // Ensure we catch all Cc and Bcc headers, regardless of case,
+      // and protecting against multiple instances of the "same" header.
+      $header_keys = array();
+      foreach (array_keys($message['headers']) as $key) {
+        $header_keys[strtolower($key)][] = $key;
       }
-      if (isset($message['headers']['Cc'])) {
-        $message['headers']['X-Rerouted-Original-Cc'] = $message['headers']['Cc'];
-        unset($message['headers']['Cc']);
+
+      if (!empty($header_keys['cc'])) {
+        foreach ($header_keys['cc'] as $header) {
+          $message['headers']['X-Rerouted-Original-Cc'] = $message['headers'][$header];
+          unset($message['headers'][$header]);
+        }
+      }
+      if (!empty($header_keys['bcc'])) {
+        foreach ($header_keys['bcc'] as $header) {
+          $message['headers']['X-Rerouted-Original-Bcc'] = $message['headers'][$header];
+          unset($message['headers'][$header]);
+        }
       }
     }
 
