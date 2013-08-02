@@ -63,14 +63,17 @@ function reroute_email_test_email_form() {
         '#type' => 'textfield',
         '#title' => t('To'),
         '#required' => TRUE,
+        '#element_validate' => array('reroute_email_test_email_field_validate'),
       ),
       'cc' => array(
         '#type' => 'textfield',
         '#title' => t('Cc'),
+        '#element_validate' => array('reroute_email_test_email_field_validate'),
       ),
       'bcc' => array(
         '#type' => 'textfield',
         '#title' => t('Bcc'),
+        '#element_validate' => array('reroute_email_test_email_field_validate'),
       ),
     ),
     'subject' => array(
@@ -99,5 +102,14 @@ function reroute_email_test_email_form_submit(&$form, &$form_state) {
   $message = drupal_mail('reroute_email', 'test_email_form', $to, language_default(), $params);
   if (!empty($message['result'])) {
     drupal_set_message(t("Test email submitted for delivery."));
+  }
+}
+
+/**
+ * Email fields validation callback for email address format.
+ */
+function reroute_email_test_email_field_validate($element, &$form_state, $form) {
+  if (!empty($element['#value']) && !valid_email_address($element['#value'])) {
+    form_error($element, t('Please submit a valid email address for the field @field_label.', array('@field_label' => $element['#title'])));
   }
 }
