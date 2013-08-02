@@ -5,7 +5,10 @@
  * Test the Reroute Email module.
  */
 
-class RerouteEmailTestCase extends DrupalWebTestCase {
+/**
+ * Tests email rerouting for the site-wide Core Contact form.
+ */
+class RerouteEmailContactTestCase extends DrupalWebTestCase {
   protected $adminUser;
 
   /**
@@ -13,8 +16,8 @@ class RerouteEmailTestCase extends DrupalWebTestCase {
    */
   public static function getInfo() {
     return array(
-      'name' => 'Reroute Email test',
-      'description' => 'Test Reroute Email modules ability to reroute mail.',
+      'name' => 'Site-wide Core Contact form email rerouting',
+      'description' => "Test Reroute Email module's ability to reroute mail sent from the Core Contact module forms.",
       'group' => 'Reroute Email',
     );
   }
@@ -62,12 +65,12 @@ class RerouteEmailTestCase extends DrupalWebTestCase {
     $this->assertText(t("Your message has been sent"));
     $mails = $this->drupalGetMails();
     $mail = end($mails);
-    $this->assertMail('to', $reroute_destination, t("Email was rerouted to @address", array('@address' => $reroute_destination)));
+    $this->assertMail('to', $reroute_destination, format_string("Email was rerouted to @address", array('@address' => $reroute_destination)));
     $search_for = t("Originally to: @to", array('@to' => $original_destination));
     $has_info = preg_match("/$search_for/", $mail['body']);
-    $this->assertTrue($has_info, t('Found the correct "Originally to" line in the body'));
+    $this->assertTrue($has_info, 'Found the correct "Originally to" line in the body');
     $this->verbose(t("Email body was:") . print_r("<pre>{$mail['body']}</pre>", TRUE));
-    $this->assertTrue(strpos($mail['body'], 'Originally to') !== FALSE, t('Body does contain "Originally to"'));
+    $this->assertTrue(strpos($mail['body'], 'Originally to') !== FALSE, 'Body does contain "Originally to"');
 
     // Now try sending to one of the additional email addresses that should
     // not be rerouted. Configure two email addresses in reroute form.
@@ -89,7 +92,7 @@ class RerouteEmailTestCase extends DrupalWebTestCase {
     $this->assertText(t("Your message has been sent"));
     $mails = $this->drupalGetMails();
     $mail = end($mails);;
-    $this->assertMail('to', $additional_destination, t("Email was not rerouted because destination was in whitelist"));
+    $this->assertMail('to', $additional_destination, 'Email was not rerouted because destination was in whitelist');
 
     // Now change the configuration to disable reroute and set the original
     // email recipients.
@@ -109,7 +112,7 @@ class RerouteEmailTestCase extends DrupalWebTestCase {
     $mails = $this->drupalGetMails();
     $mail = end($mails);
     // Mail should not be rerouted - should go to $original_destination.
-    $this->assertMail('to', $original_destination, t("Mail not rerouted - sent to original destination."));
+    $this->assertMail('to', $original_destination, 'Mail not rerouted - sent to original destination.');
     $this->verbose(t("Email 'to' was:") . print_r("<pre>{$mail['to']}</pre>", TRUE));
 
     // Configure to reroute without body injection.
@@ -128,7 +131,7 @@ class RerouteEmailTestCase extends DrupalWebTestCase {
     $mail = end($mails);
     // There should be nothing in the body except the contact message - no
     // body injection like 'Originally to'.
-    $this->assertTrue(strpos($mail['body'], 'Originally to') === FALSE, t('Body does not contain "Originally to"'));
-    $this->assertTrue($mail['headers']['X-Rerouted-Original-To'] == $original_destination, t('X-Rerouted-Original-To is correctly set to the original destination email'));
+    $this->assertTrue(strpos($mail['body'], 'Originally to') === FALSE, 'Body does not contain "Originally to"');
+    $this->assertTrue($mail['headers']['X-Rerouted-Original-To'] == $original_destination, 'X-Rerouted-Original-To is correctly set to the original destination email');
   }
 }
