@@ -12,7 +12,7 @@ define('REROUTE_EMAIL_ENABLE', 'reroute_email_enable');
 // Regular expression used to split email addresses provided in form.
 // This allows the use of any number of spaces, commas, or semicolons
 // between email addresses.
-define('EMAIL_SPLIT_RE', '/[\s,;]+/');
+define('REROUTE_EMAIL_EMAIL_SPLIT_RE', '/[\s,;]+/');
 
 
 /**
@@ -114,7 +114,7 @@ function reroute_email_mail_alter(&$message) {
     }
 
     // Split the address string on whitespace, ignoring any empty results.
-    $addresslist = preg_split(EMAIL_SPLIT_RE, variable_get(REROUTE_EMAIL_ADDRESS, ini_get('sendmail_from')), -1, PREG_SPLIT_NO_EMPTY);
+    $addresslist = preg_split(REROUTE_EMAIL_EMAIL_SPLIT_RE, variable_get(REROUTE_EMAIL_ADDRESS, ini_get('sendmail_from')), -1, PREG_SPLIT_NO_EMPTY);
 
     if (!in_array($to, $addresslist)) {
       // Not on the list, so reroute to the first address in the list.

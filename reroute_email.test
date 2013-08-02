@@ -218,21 +218,20 @@ class RerouteEmailTestEmailTestCase extends DrupalWebTestCase {
       'bcc' => "Bcc address invalid format",
       'subject' => "Test Reroute Email Test Email Form",
       'body' => 'Testing email rerouting and the Test Email form',
-    );   
+    );
     $this->drupalPost("admin/config/development/reroute_email/test", $post, t("Send email"));
-    // Required To field
+    // Required To field.
     $this->assertText(t("To field is required."));
     // Email format for the Cc field.
     $this->assertText(t("Please submit a valid email address for the field Cc."));
     // Email format for the Bcc field.
     $this->assertText(t("Please submit a valid email address for the field Bcc."));
 
-    // Test email format for the To field
+    // Check email format for the To field.
     $post = array(
       'to' => "To address invalid format",
-    );   
+    );
     $this->drupalPost("admin/config/development/reroute_email/test", $post, t("Send email"));
-    // Email format
     $this->assertText(t("Please submit a valid email address for the field To."));
   }
 }
