@@ -135,3 +135,104 @@ class RerouteEmailContactTestCase extends DrupalWebTestCase {
     $this->assertTrue($mail['headers']['X-Rerouted-Original-To'] == $original_destination, 'X-Rerouted-Original-To is correctly set to the original destination email');
   }
 }
+
+/**
+ * Tests email rerouting for the Test Email form.
+ */
+class RerouteEmailTestEmailTestCase extends DrupalWebTestCase {
+  protected $adminUser;
+
+  /**
+   * Implements DrupalWebTestCase::getInfo().
+   */
+  public static function getInfo() {
+    return array(
+      'name' => 'Test Email form',
+      'description' => "Test Reroute Email's form for sending a test email.",
+      'group' => 'Reroute Email',
+    );
+  }
+
+  /**
+   * Enable modules and create user with specific permissions.
+   */
+  public function setUp() {
+    parent::setUp('reroute_email');
+    $this->adminUser = $this->drupalCreateUser(array(
+      'administer reroute email',
+    ));
+  }
+
+  /**
+   * Basic tests for reroute_email Test Email form.
+   *
+   * @todo: There are enough of these now that they can be refactored into
+   * some decent utility functions, instead of all this copy and paste.
+   */
+  public function testFormTestEmail() {
+    $reroute_destination = "rerouted@example.com";
+    // Login the admin user.
+    $this->drupalLogin($this->adminUser);
+
+    // Configure to reroute normally to rerouted@example.com.
+    $post = array(
+      'reroute_email_address' => $reroute_destination,
+      'reroute_email_enable' => TRUE,
+      'reroute_email_enable_message' => TRUE,
+    );
+    $this->drupalPost("admin/config/development/reroute_email", $post, t('Save configuration'));
+    $this->assertText(t("The configuration options have been saved."));
+
+    // Submit the Test Email form to send an email.
+    $post = array(
+      'to' => "to@example.com",
+      'cc' => "cc@example.com",
+      'bcc' => "bcc@example.com",
+      'subject' => "Test Reroute Email Test Email Form",
+      'body' => 'Testing email rerouting and the Test Email form',
+    );
+    $this->drupalPost("admin/config/development/reroute_email/test", $post, t("Send email"));
+    $this->assertText(t("Test email submitted for delivery."));
+    $mails = $this->drupalGetMails();
+    $mail = end($mails);
+    // Check rerouted email to.
+    $this->assertMail('to', $reroute_destination, format_string('To email address was rerouted to @address.', array('@address' => $reroute_destination)));
+
+    // Check the To passed through the Test Email Form.
+    $search_for = t("Originally to: @to", array('@to' => $post['to']));
+    $has_info = preg_match("/$search_for/", $mail['body']);
+    $this->assertTrue($has_info, 'Found submitted "To" email address in the body');
+    $this->verbose(t("Email body was:") . print_r("<pre>{$mail['body']}</pre>", TRUE));
+
+    // Check the Cc and Bcc headers are the ones submitted through the form.
+    $this->assertTrue($mail['headers']['X-Rerouted-Original-Cc'] == $post['cc'], format_string('X-Rerouted-Original-Cc is correctly set to submitted value: @address', array('@address' => $post['cc'])));
+    $this->assertTrue($mail['headers']['X-Rerouted-Original-Bcc'] == $post['bcc'], format_string('X-Rerouted-Original-Cc is correctly set to submitted value: @address', array('@address' => $post['bcc'])));
+    // Check the Subject and Body field values can be found in rerouted email.
+    $this->assertMail('subject', $post['subject'], format_string('Subject is correctly set to submitted value: @subject', array('@subject' => $post['subject'])));
+    $this->assertFalse(strpos($mail['body'], $post['body']) === FALSE, 'Body contains the value submitted through the form');
+
+    // Test form validation, required and email address format.
+    $post = array(
+      'to' => "",
+      'cc' => "Cc address invalid format",
+      'bcc' => "Bcc address invalid format",
+      'subject' => "Test Reroute Email Test Email Form",
+      'body' => 'Testing email rerouting and the Test Email form',
+    );   
+    $this->drupalPost("admin/config/development/reroute_email/test", $post, t("Send email"));
+    // Required To field
+    $this->assertText(t("To field is required."));
+    // Email format for the Cc field.
+    $this->assertText(t("Please submit a valid email address for the field Cc."));
+    // Email format for the Bcc field.
+    $this->assertText(t("Please submit a valid email address for the field Bcc."));
+
+    // Test email format for the To field
+    $post = array(
+      'to' => "To address invalid format",
+    );   
+    $this->drupalPost("admin/config/development/reroute_email/test", $post, t("Send email"));
+    // Email format
+    $this->assertText(t("Please submit a valid email address for the field To."));
+  }
+}
