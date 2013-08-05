@@ -69,7 +69,7 @@ class RerouteEmailContactTestCase extends DrupalWebTestCase {
     $search_for = t("Originally to: @to", array('@to' => $original_destination));
     $has_info = preg_match("/$search_for/", $mail['body']);
     $this->assertTrue($has_info, 'Found the correct "Originally to" line in the body');
-    $this->verbose(t("Email body was:") . print_r("<pre>{$mail['body']}</pre>", TRUE));
+    $this->verbose(t('Email body was: <pre>@mail_body</pre>', array('@mail_body' => $mail['body'])));
     $this->assertTrue(strpos($mail['body'], 'Originally to') !== FALSE, 'Body does contain "Originally to"');
 
     // Now try sending to one of the additional email addresses that should
@@ -113,7 +113,7 @@ class RerouteEmailContactTestCase extends DrupalWebTestCase {
     $mail = end($mails);
     // Mail should not be rerouted - should go to $original_destination.
     $this->assertMail('to', $original_destination, 'Mail not rerouted - sent to original destination.');
-    $this->verbose(t("Email 'to' was:") . print_r("<pre>{$mail['to']}</pre>", TRUE));
+    $this->verbose(t("Email 'to' was: <pre>@mail_to</pre>", array('@mail_to' => $mail['to'])));
 
     // Configure to reroute without body injection.
     $post = array(
