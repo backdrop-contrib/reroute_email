@@ -280,8 +280,8 @@ class RerouteEmailSpecialTestCase extends DrupalWebTestCase {
    */
   public static function getInfo() {
     return array(
-      'name' => 'Email body provided as a string',
-      'description' => "Support message's body passed to reroute email as a string.",
+      'name' => 'Body as a string and robust headers',
+      'description' => "Support message's body passed as a string and Cc/Bcc header keys with an unexpected case.",
       'group' => 'Reroute Email',
     );
   }
@@ -305,6 +305,9 @@ class RerouteEmailSpecialTestCase extends DrupalWebTestCase {
   public function testBodyStringRobustHeaders() {
     $reroute_destination = "rerouted@example.com";
     $original_destination = "original@example.com";
+    // Initialize Cc and Bcc keys with a special case.
+    $test_cc_key = 'cC';
+    $test_bcc_key = 'bCc';
     // Login the admin user.
     $this->drupalLogin($this->adminUser);
 
@@ -322,6 +325,12 @@ class RerouteEmailSpecialTestCase extends DrupalWebTestCase {
       'to' => $original_destination,
       'params' => array(
         'body' => "Test Message body is a string.",
+        'headers' => array(
+          'test_cc_key' => $test_cc_key,
+          'test_bcc_key' => $test_bcc_key,
+          $test_cc_key => "test_cc_key@example.com",
+          $test_bcc_key => "test_bcc_key@example.com"
+        ),
       ),
     );
     // Send test helper sub-module's email.
@@ -344,5 +353,9 @@ class RerouteEmailSpecialTestCase extends DrupalWebTestCase {
     // Check the watchdog entry logged by reroute_email_test_mail_alter.
     $this->drupalGet('admin/reports/dblog');
     $this->assertRaw(t('A String was detected in the body'), 'Recorded in recent log messages: a String was detected in the body.');
+
+    // Test the robustness of the CC and BCC keys in headers.
+    $this->assertTrue($mail['headers']['X-Rerouted-Original-Cc'] == $test_message['params']['headers'][$test_cc_key], format_string('X-Rerouted-Original-Cc is correctly set to @test_cc_address, although Cc header message key provided was: @test_cc_key', array('@test_cc_address' => $test_message['params']['headers'][$test_cc_key], '@test_cc_key' => $test_cc_key)));
+    $this->assertTrue($mail['headers']['X-Rerouted-Original-Bcc'] == $test_message['params']['headers'][$test_bcc_key], format_string('X-Rerouted-Original-Bcc is correctly set to @test_bcc_address, although Bcc header message key provided was: @test_bcc_key', array('@test_bcc_address' => $test_message['params']['headers'][$test_bcc_key], '@test_bcc_key' => $test_bcc_key)));
   }
 }

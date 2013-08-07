@@ -9,7 +9,9 @@
  * Implements hook_mail().
  *
  * This function allows testing Reroute Email's handling of a string passed for
- * message's body instead of an Array as required by drupal_mail.
+ * message's body instead of an Array as required by drupal_mail. It also
+ * allows testing the robustness of the handling of Cc and Bcc header keys.
+ * Body, Cc and Bcc values are initialized from test case through $params.
  */
 function reroute_email_test_mail($key, &$message, $params) {
   if ($key != 'test_reroute_email') {
@@ -20,6 +22,13 @@ function reroute_email_test_mail($key, &$message, $params) {
   // Body is provided as a string.
   if (!empty($params['body'])) {
     $message['body'] = $params['body'];  
+  }
+  // Provide Cc and Bcc headers with an unexpected case.
+  if (!empty($params['headers']['test_cc_key']) && !empty($params['headers'][$params['headers']['test_cc_key']])) {
+    $message['headers'][$params['headers']['test_cc_key']] = $params['headers'][$params['headers']['test_cc_key']];
+  }
+  if (!empty($params['headers']['test_bcc_key']) && !empty($params['headers'][$params['headers']['test_bcc_key']])) {
+    $message['headers'][$params['headers']['test_bcc_key']] = $params['headers'][$params['headers']['test_bcc_key']];
   }
 }
 
