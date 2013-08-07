@@ -268,3 +268,81 @@ class RerouteEmailTestEmailTestCase extends DrupalWebTestCase {
     $this->assertTrue($mail['headers']['Bcc'] == $post['bcc'], format_string('Bcc is correctly set to submitted value: @address', array('@address' => $post['bcc'])));
   }
 }
+
+/**
+ * Test special cases for body as a string.
+ */
+class RerouteEmailSpecialTestCase extends DrupalWebTestCase {
+  protected $adminUser;
+
+  /**
+   * Implements DrupalWebTestCase::getInfo().
+   */
+  public static function getInfo() {
+    return array(
+      'name' => 'Email body provided as a string',
+      'description' => "Support message's body passed to reroute email as a string.",
+      'group' => 'Reroute Email',
+    );
+  }
+
+  /**
+   * Enable modules and create user with specific permissions.
+   */
+  public function setUp() {
+    // Include hidden test helper sub-module.
+    parent::setUp('reroute_email', 'reroute_email_test');
+    $this->adminUser = $this->drupalCreateUser(array(
+      'administer reroute email',
+      // Needed to access log messages in test.
+      'access site reports',
+    ));
+  }
+
+  /**
+   * Test handling of message body as a string and header keys' robustness.
+   */
+  public function testBodyStringRobustHeaders() {
+    $reroute_destination = "rerouted@example.com";
+    $original_destination = "original@example.com";
+    // Login the admin user.
+    $this->drupalLogin($this->adminUser);
+
+    // Configure to reroute normally to rerouted@example.com.
+    $post = array(
+      'reroute_email_address' => $reroute_destination,
+      'reroute_email_enable' => TRUE,
+      'reroute_email_enable_message' => TRUE,
+    );
+    $this->drupalPost("admin/config/development/reroute_email", $post, t('Save configuration'));
+    $this->assertText(t("The configuration options have been saved."));
+
+    // Print test email values for comparing values on test results page.
+    $test_message = array(
+      'to' => $original_destination,
+      'params' => array(
+        'body' => "Test Message body is a string.",
+      ),
+    );
+    // Send test helper sub-module's email.
+    drupal_mail('reroute_email_test', 'test_reroute_email', $test_message['to'], language_default(), $test_message['params']);
+    $this->verbose(t('Test email message values: <pre>@test_message</pre>', array('@test_message' => var_export($test_message, TRUE))));
+
+    $mails = $this->drupalGetMails();
+    $mail = end($mails);
+    // Check rerouted email to.
+    $this->assertMail('to', $reroute_destination, format_string('To email address was rerouted to @address.', array('@address' => $reroute_destination)));
+
+    // Check original to.
+    $search_for = t("Originally to: @to", array('@to' => $original_destination));
+    $has_info = preg_match("/$search_for/", $mail['body']);
+    $this->assertTrue($has_info, t('Found the correct "Originally to" line in the body'));
+    $this->verbose(t('Email body was: <pre>@mail_body</pre>', array('@mail_body' => $mail['body'])));
+    // Check if test message body is found although provided as a string.
+    $this->assertTrue(strpos($mail['body'], $test_message['params']['body']) !== FALSE, 'Email body contains original message body although it was provided as a string.');
+
+    // Check the watchdog entry logged by reroute_email_test_mail_alter.
+    $this->drupalGet('admin/reports/dblog');
+    $this->assertRaw(t('A String was detected in the body'), 'Recorded in recent log messages: a String was detected in the body.');
+  }
+}

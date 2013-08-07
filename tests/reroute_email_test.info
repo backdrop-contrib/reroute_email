@@ -1,0 +1,5 @@
+name = "Reroute Email Test"
+description = "Helper module for the reroute email tests."
+core = 7.x
+package = Testing
+hidden = TRUE
