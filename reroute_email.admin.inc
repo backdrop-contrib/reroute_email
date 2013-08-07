@@ -18,7 +18,7 @@ function reroute_email_settings() {
   $form[REROUTE_EMAIL_ADDRESS] = array(
     '#type'          => 'textfield',
     '#title'         => t('Email addresses'),
-    '#default_value' => variable_get(REROUTE_EMAIL_ADDRESS, ini_get('sendmail_from')),
+    '#default_value' => variable_get(REROUTE_EMAIL_ADDRESS, variable_get('site_mail', ini_get('sendmail_from'))),
     '#description'   => t('Provide a space, comma, or semicolon-delimited list of email addresses to pass through. Every destination email address which is not on this list will be rerouted to the first address on the list.'),
     '#states' => array(
       'visible' => array(':input[name=reroute_email_enable]' => array('checked' => TRUE)),

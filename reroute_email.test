@@ -387,3 +387,48 @@ class RerouteEmailSpecialTestCase extends RerouteEmailTestCase {
     $this->assertTrue($mail['headers']['X-Rerouted-Original-Bcc'] == $test_message['params']['headers'][$test_bcc_key], format_string('X-Rerouted-Original-Bcc is correctly set to @test_bcc_address, although Bcc header message key provided was: @test_bcc_key', array('@test_bcc_address' => $test_message['params']['headers'][$test_bcc_key], '@test_bcc_key' => $test_bcc_key)));
   }
 }
+
+/**
+ * Test default reroute destination email address when it is not configured.
+ */
+class RerouteEmailDefaultAddressTestCase extends RerouteEmailTestCase {
+
+  /**
+   * Implements DrupalWebTestCase::getInfo().
+   */
+  public static function getInfo() {
+    return array(
+      'name' => 'Default reroute destination email address',
+      'description' => "When reroute email addresses field is not configured, attempt to use the site email address, otherwise use sendmail_from system variable.",
+      'group' => 'Reroute Email',
+    );
+  }
+
+  /**
+   * Test default destination address is set to site_mail or sendmail_from.
+   *
+   * When reroute email addresses field is not configured and settings haven't
+   * been configured yet, check if the site email address or the sendmail_from
+   * system variable are properly used a fallbacks.
+   */
+  public function testRerouteDefaultAddress() {
+
+    // Check default value for reroute_email_address when not configured.
+    // If Site email is not empty, it should be the default value.
+    $default_destination = variable_get('site_mail', NULL);
+    $this->assertTrue(isset($default_destination), format_string('Site mail is not empty: @default_destination', array('@default_destination' => $default_destination)));
+    // Programmatically enable email rerouting.
+    variable_set(REROUTE_EMAIL_ENABLE, TRUE);
+    $this->drupalGet("admin/config/development/reroute_email/reroute_email");
+    $this->assertFieldByName(REROUTE_EMAIL_ENABLE, TRUE, 'Email rerouting was programmatically successfully enabled.');
+    // Check Email addresses field default value.
+    $this->assertFieldByName(REROUTE_EMAIL_ADDRESS, $default_destination, format_string('Site email address is configured and is the default value of the Email addresses field: @default_destination', array('@default_destination' => $default_destination)));
+
+    // Now unset site_mail to check if system sendmail_from is properly used.
+    variable_del('site_mail');
+    $default_destination = ini_get('sendmail_from');
+    $this->drupalGet("admin/config/development/reroute_email/reroute_email");
+    // Check Email addresses field default value.
+    $this->assertFieldByName('reroute_email_address', $default_destination, format_string('Site email address is not configured, Email addresses field defaults to system sendmail_from: @default_destination', array('@default_destination' => $default_destination)));
+  }
+}
