@@ -20,13 +20,13 @@ class RerouteEmailTestCase extends DrupalWebTestCase {
    * Reroute email destination address used for the tests.
    * @var string
    */
-  protected $reroute_destination = "rerouted@example.com";
+  protected $rerouteDestination = "rerouted@example.com";
 
   /**
    * Original email address used for the tests.
    * @var string
    */
-  protected $original_destination = "original@example.com";
+  protected $originalDestination = "original@example.com";
 
   /**
    * Permissions required by the user to perform the tests.
@@ -58,7 +58,7 @@ class RerouteEmailTestCase extends DrupalWebTestCase {
    *
    * @param string $reroute_destination
    *   (optional) The email address to which emails should be rerouted.
-   *   Defaults to $this->reroute_destination if set to NULL.
+   *   Defaults to $this->rerouteDestination if set to NULL.
    * @param bool $reroute_email_enable
    *   (optional) Set to TRUE to enable email Rerouting, defaults to TRUE.
    * @param bool $reroute_email_enable_message
@@ -67,7 +67,7 @@ class RerouteEmailTestCase extends DrupalWebTestCase {
   public function configureRerouteEmail($reroute_destination = NULL, $reroute_email_enable = TRUE, $reroute_email_enable_message = TRUE) {
     // Initialize $reroute_destination by default if no value is provided.
     if (!isset($reroute_destination)) {
-      $reroute_destination = $this->reroute_destination;
+      $reroute_destination = $this->rerouteDestination;
     }
     // Configure to Reroute Email settings form.
     $post = array(
@@ -89,12 +89,12 @@ class RerouteEmailTestCase extends DrupalWebTestCase {
    *   Message to display in test case results.
    * @param bool $original_destination
    *   (optional) The original email address to be found in rerouted email
-   *   body. Defaults to $this->original_destination if set to NULL.
+   *   body. Defaults to $this->originalDestination if set to NULL.
    */
   public function assertOriginallyTo($mail_body, $message, $original_destination = NULL) {
     // Initialize $original_destination by default if no value is provided.
     if (!isset($original_destination)) {
-      $original_destination = $this->original_destination;
+      $original_destination = $this->originalDestination;
     }
     // Search in $mailbody for "Originally to: $original_destination".
     $search_for = t("Originally to: @to", array('@to' => $original_destination));
@@ -147,7 +147,7 @@ class RerouteEmailContactTestCase extends RerouteEmailTestCase {
     $this->configureRerouteEmail();
 
     // Configure the contact settings to send to $original_destination.
-    $this->drupalPost('admin/structure/contact/edit/1', array('recipients' => $this->original_destination), t('Save'));
+    $this->drupalPost('admin/structure/contact/edit/1', array('recipients' => $this->originalDestination), t('Save'));
 
     // Go to the contact page and send an email.
     $post = array('subject' => "Test test test", 'message' => 'This is a test');
@@ -155,7 +155,7 @@ class RerouteEmailContactTestCase extends RerouteEmailTestCase {
     $this->assertText(t("Your message has been sent"));
     $mails = $this->drupalGetMails();
     $mail = end($mails);
-    $this->assertMail('to', $this->reroute_destination, format_string("Email was rerouted to @address", array('@address' => $this->reroute_destination)));
+    $this->assertMail('to', $this->rerouteDestination, format_string("Email was rerouted to @address", array('@address' => $this->rerouteDestination)));
     // Check if original destination email address is in rerouted email body.
     $this->assertOriginallyTo($mail['body'], 'Found the correct "Originally to" line in the body');
     $this->assertTrue(strpos($mail['body'], 'Originally to') !== FALSE, 'Body does contain "Originally to"');
@@ -163,7 +163,7 @@ class RerouteEmailContactTestCase extends RerouteEmailTestCase {
     // Now try sending to one of the additional email addresses that should
     // not be rerouted. Configure two email addresses in reroute form.
     // Body injection is still turned on.
-    $this->configureRerouteEmail("{$this->reroute_destination}, $additional_destination");
+    $this->configureRerouteEmail("{$this->rerouteDestination}, $additional_destination");
 
     // Configure the contact settings to point to the additional recipient.
     $this->drupalPost('admin/structure/contact/edit/1', array('recipients' => $additional_destination), t('Save'));
@@ -181,7 +181,7 @@ class RerouteEmailContactTestCase extends RerouteEmailTestCase {
     $this->configureRerouteEmail(NULL, FALSE);
 
     // Set the contact form to send to original_destination.
-    $this->drupalPost('admin/structure/contact/edit/1', array('recipients' => $this->original_destination), t('Save'));
+    $this->drupalPost('admin/structure/contact/edit/1', array('recipients' => $this->originalDestination), t('Save'));
     // Go to the contact page and send an email.
     $post = array('subject' => "Test test test", 'message' => 'This is a test');
     $this->drupalPost("contact", $post, t("Send message"));
@@ -189,7 +189,7 @@ class RerouteEmailContactTestCase extends RerouteEmailTestCase {
     $mails = $this->drupalGetMails();
     $mail = end($mails);
     // Mail should not be rerouted - should go to $original_destination.
-    $this->assertMail('to', $this->original_destination, 'Mail not rerouted - sent to original destination.');
+    $this->assertMail('to', $this->originalDestination, 'Mail not rerouted - sent to original destination.');
     $this->verbose(t("Email 'to' was: <pre>@mail_to</pre>", array('@mail_to' => $mail['to'])));
 
     // Configure to reroute without body injection.
@@ -204,7 +204,7 @@ class RerouteEmailContactTestCase extends RerouteEmailTestCase {
     // There should be nothing in the body except the contact message - no
     // body injection like 'Originally to'.
     $this->assertTrue(strpos($mail['body'], 'Originally to') === FALSE, 'Body does not contain "Originally to"');
-    $this->assertTrue($mail['headers']['X-Rerouted-Original-To'] == $this->original_destination, 'X-Rerouted-Original-To is correctly set to the original destination email');
+    $this->assertTrue($mail['headers']['X-Rerouted-Original-To'] == $this->originalDestination, 'X-Rerouted-Original-To is correctly set to the original destination email');
   }
 }
 
@@ -253,7 +253,7 @@ class RerouteEmailTestEmailTestCase extends RerouteEmailTestCase {
     $mails = $this->drupalGetMails();
     $mail = end($mails);
     // Check rerouted email to.
-    $this->assertMail('to', $this->reroute_destination, format_string('To email address was rerouted to @address.', array('@address' => $this->reroute_destination)));
+    $this->assertMail('to', $this->rerouteDestination, format_string('To email address was rerouted to @address.', array('@address' => $this->rerouteDestination)));
 
     // Check the To passed through the Test Email Form.
     $this->assertOriginallyTo($mail['body'], 'Found submitted "To" email address in the body', $post['to']);
@@ -281,7 +281,7 @@ class RerouteEmailTestEmailTestCase extends RerouteEmailTestCase {
     $mails = $this->drupalGetMails();
     $mail = end($mails);
     // Check rerouted email to.
-    $this->assertMail('to', $this->reroute_destination, format_string('To email address was rerouted to @address.', array('@address' => $this->reroute_destination)));
+    $this->assertMail('to', $this->rerouteDestination, format_string('To email address was rerouted to @address.', array('@address' => $this->rerouteDestination)));
 
     // Check the To passed through the Test Email Form.
     $this->assertOriginallyTo($mail['body'], 'Found submitted "To" email address in the body', $post['to']);
@@ -352,7 +352,7 @@ class RerouteEmailSpecialTestCase extends RerouteEmailTestCase {
 
     // Print test email values for comparing values on test results page.
     $test_message = array(
-      'to' => $this->original_destination,
+      'to' => $this->originalDestination,
       'params' => array(
         'body' => "Test Message body is a string.",
         'headers' => array(
@@ -370,7 +370,7 @@ class RerouteEmailSpecialTestCase extends RerouteEmailTestCase {
     $mails = $this->drupalGetMails();
     $mail = end($mails);
     // Check rerouted email to.
-    $this->assertMail('to', $this->reroute_destination, format_string('To email address was rerouted to @address.', array('@address' => $this->reroute_destination)));
+    $this->assertMail('to', $this->rerouteDestination, format_string('To email address was rerouted to @address.', array('@address' => $this->rerouteDestination)));
 
     // Check if original destination email address is in rerouted email body.
     $this->assertOriginallyTo($mail['body'], 'Found the correct "Originally to" line in the body');
