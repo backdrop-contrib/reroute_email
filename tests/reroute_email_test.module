@@ -40,6 +40,7 @@ function reroute_email_test_mail($key, &$message, $params) {
  * implode(): Invalid arguments passed in DefaultMailSystem->format().
  */
 function reroute_email_test_mail_alter(&$message) {
+  // Only alter the email for the key test_reroute_email.
   if ($message['key'] != 'test_reroute_email') {
     return;
   }
