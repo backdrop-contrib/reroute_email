@@ -21,7 +21,7 @@ function reroute_email_test_mail($key, &$message, $params) {
 
   // Body is provided as a string.
   if (!empty($params['body'])) {
-    $message['body'] = $params['body'];  
+    $message['body'] = $params['body'];
   }
   // Provide Cc and Bcc headers with an unexpected case.
   if (!empty($params['headers']['test_cc_key']) && !empty($params['headers'][$params['headers']['test_cc_key']])) {

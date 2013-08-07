@@ -329,7 +329,7 @@ class RerouteEmailSpecialTestCase extends DrupalWebTestCase {
           'test_cc_key' => $test_cc_key,
           'test_bcc_key' => $test_bcc_key,
           $test_cc_key => "test_cc_key@example.com",
-          $test_bcc_key => "test_bcc_key@example.com"
+          $test_bcc_key => "test_bcc_key@example.com",
         ),
       ),
     );
