@@ -17,6 +17,21 @@ define('REROUTE_EMAIL_EMAIL_SPLIT_RE', '/[\s,;]+/');
 
 
 /**
+ * Implements hook_module_implements_alter().
+ *
+ * Ensure reroute_email runs last when hook_mail_alter is invoked.
+ */
+function reroute_email_module_implements_alter(&$implementations, $hook) {
+  // Testing with isset is only necessary if module doesn't implement the hook.
+  if ($hook == 'mail_alter') {
+    // Move our hook implementation to the bottom.
+    $group = $implementations['reroute_email'];
+    unset($implementations['reroute_email']);
+    $implementations['reroute_email'] = $group;
+  }
+}
+
+/**
  * Implements of hook_permission().
  */
 function reroute_email_permission() {
