@@ -9,12 +9,14 @@
  * Settings form.
  */
 function reroute_email_settings() {
+  // Checkbox to enable or disable email rerouting.
   $form[REROUTE_EMAIL_ENABLE] = array(
     '#type'          => 'checkbox',
     '#title'         => t('Enable rerouting'),
     '#default_value' => variable_get(REROUTE_EMAIL_ENABLE, 0),
     '#description'   => t('Check this box if you want to enable email rerouting. Uncheck to disable rerouting.'),
   );
+  // Text field for email rerouting targets.
   $form[REROUTE_EMAIL_ADDRESS] = array(
     '#type'          => 'textfield',
     '#title'         => t('Email addresses'),
@@ -24,11 +26,22 @@ function reroute_email_settings() {
       'visible' => array(':input[name=reroute_email_enable]' => array('checked' => TRUE)),
     ),
   );
+  // Checkbox to enable additional information in email body message.
   $form[REROUTE_EMAIL_ENABLE_MESSAGE] = array(
     '#type' => 'checkbox',
     '#title' => t('Show rerouting description in mail body'),
     '#default_value' => variable_get(REROUTE_EMAIL_ENABLE_MESSAGE, 1),
-    '#description' => t('Check this box if you want a message to be inserted into the email body when the mail is being rerouted. Otherwise, SMTP headers will be used to describe the rerouting. If sending rich-text email, leave this unchecked so that the body of the email will not be disturbed.'),
+    '#description' => t('Check this box if you would like a message to be inserted into the email body when the mail is being rerouted. Otherwise, SMTP headers will be used to describe the rerouting. If sending rich-text email, leave this unchecked so that the body of the email will not be disturbed.'),
+    '#states' => array(
+      'visible' => array(':input[name=reroute_email_enable]' => array('checked' => TRUE)),
+    ),
+  );
+  // Checkbox to enable the display of a Drupal message after rerouting email.
+  $form[REROUTE_EMAIL_ENABLE_DSM] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Display a Drupal status message after rerouting submitted email'),
+    '#default_value' => variable_get(REROUTE_EMAIL_ENABLE_DSM, 1),
+    '#description' => t('Check this box if you would like a Drupal status message to be displayed to users after submitting an email to let them know it was rerouted to a different email address.'),
     '#states' => array(
       'visible' => array(':input[name=reroute_email_enable]' => array('checked' => TRUE)),
     ),

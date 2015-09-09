@@ -70,7 +70,8 @@ $conf['reroute_email_address'] = "example@example.com";
 // Enable inserting a message into the email body when the mail is being
 // rerouted.
 $conf['reroute_email_enable_message'] = 1;
-
+// Enable the display of a Drupal status message after rerouting email.
+$conf['reroute_email_enable_dsm'] = 1;
 
 Test Email Form
 ---------------

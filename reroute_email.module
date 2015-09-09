@@ -9,6 +9,7 @@ define('REROUTE_EMAIL_ADDRESS', 'reroute_email_address');
 define('REROUTE_EMAIL_ADDRESS_EMPTY_PLACEHOLDER', t('[No reroute email address configured]'));
 define('REROUTE_EMAIL_ENABLE_MESSAGE', 'reroute_email_enable_message');
 define('REROUTE_EMAIL_ENABLE', 'reroute_email_enable');
+define('REROUTE_EMAIL_ENABLE_DSM', 'reroute_email_enable_dsm');
 
 // Regular expression used to split email addresses provided in form.
 // This allows the use of any number of spaces, commas, or semicolons
@@ -162,6 +163,10 @@ function reroute_email_mail_alter(&$message) {
       ));
       // Let users know email has been aborted, but logged.
       drupal_set_message(t('<em>@message_id</em> was aborted by reroute email, please check the <a href="@dblog">recent log entries</a> for complete details on the rerouted email.', array('@message_id' => $message['id'], '@dblog' => url('admin/reports/dblog'))));
+    }
+    elseif (variable_get(REROUTE_EMAIL_ENABLE_DSM, 1)) {
+      // Display a Drupal status message to let users know email was rerouted.
+      drupal_set_message(t('Submitted email, with ID: <em>@message_id</em>, was rerouted to configured address: <em>@reroute_target</em>. For more details please refer to Reroute Email settings.', array('@message_id' => $message['id'], '@reroute_target' => $message['to'])));
     }
   }
 }
