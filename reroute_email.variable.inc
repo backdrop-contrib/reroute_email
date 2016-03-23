@@ -33,6 +33,15 @@ function reroute_email_variable_info() {
     'group' => 'reroute_email',
   );
 
+  // Checkbox to enable the display of a Drupal message after rerouting email.
+  $variable[REROUTE_EMAIL_ENABLE_DSM] = array(
+    'title' => t('Display a Drupal status message after rerouting submitted email'),
+    'description' => t('Check this box if you would like a Drupal status message to be displayed to users after submitting an email to let them know it was rerouted to a different email address.'),
+    'type' => 'boolean',
+    'default' => 1,
+    'group' => 'reroute_email',
+  );
+
   return $variable;
 }
 
