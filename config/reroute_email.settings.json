@@ -1,0 +1,7 @@
+{
+    "_config_name": "reroute_email.settings",
+    "address": null,
+    "enable_message": 1,
+    "enable": 0,
+    "enable_dsm": 1
+}

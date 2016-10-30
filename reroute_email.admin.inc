@@ -9,45 +9,53 @@
  * Settings form.
  */
 function reroute_email_settings() {
+  $config = config('reroute_email.settings');
+
   // Checkbox to enable or disable email rerouting.
-  $form[REROUTE_EMAIL_ENABLE] = array(
+  $form['reroute_email_enable'] = array(
     '#type'          => 'checkbox',
     '#title'         => t('Enable rerouting'),
-    '#default_value' => variable_get(REROUTE_EMAIL_ENABLE, 0),
+    '#default_value' => $config->get('enable'),
     '#description'   => t('Check this box if you want to enable email rerouting. Uncheck to disable rerouting.'),
   );
-  // Text field for email rerouting targets.
-  $form[REROUTE_EMAIL_ADDRESS] = array(
+  $form['reroute_email_address'] = array(
     '#type'          => 'textfield',
     '#title'         => t('Email addresses'),
-    '#default_value' => variable_get(REROUTE_EMAIL_ADDRESS, variable_get('site_mail', ini_get('sendmail_from'))),
+    '#default_value' => $config->get('address'),
     '#description'   => t('Provide a space, comma, or semicolon-delimited list of email addresses to pass through. Every destination email address which is not on this list will be rerouted to the first address on the list.<br/> If the field is empty and no value is provided, <strong>all outgoing emails would be aborted</strong> and the email would be recorded in the <a href="@dblog">recent log entries</a>.', array('@dblog' => url('admin/reports/dblog'))),
     '#states' => array(
       'visible' => array(':input[name=reroute_email_enable]' => array('checked' => TRUE)),
     ),
   );
   // Checkbox to enable additional information in email body message.
-  $form[REROUTE_EMAIL_ENABLE_MESSAGE] = array(
+  $form['reroute_email_enable_message'] = array(
     '#type' => 'checkbox',
     '#title' => t('Show rerouting description in mail body'),
-    '#default_value' => variable_get(REROUTE_EMAIL_ENABLE_MESSAGE, 1),
+    '#default_value' => $config->get('enable_message'),
     '#description' => t('Check this box if you would like a message to be inserted into the email body when the mail is being rerouted. Otherwise, SMTP headers will be used to describe the rerouting. If sending rich-text email, leave this unchecked so that the body of the email will not be disturbed.'),
     '#states' => array(
       'visible' => array(':input[name=reroute_email_enable]' => array('checked' => TRUE)),
     ),
   );
-  // Checkbox to enable the display of a Drupal message after rerouting email.
-  $form[REROUTE_EMAIL_ENABLE_DSM] = array(
+  // Checkbox to enable the display of a Backdrop message after rerouting email.
+  $form['reroute_email_enable_dsm'] = array(
     '#type' => 'checkbox',
-    '#title' => t('Display a Drupal status message after rerouting submitted email'),
-    '#default_value' => variable_get(REROUTE_EMAIL_ENABLE_DSM, 1),
-    '#description' => t('Check this box if you would like a Drupal status message to be displayed to users after submitting an email to let them know it was rerouted to a different email address.'),
+    '#title' => t('Display a Backdrop status message after rerouting submitted email'),
+    '#default_value' => $config->get('enable_dsm'),
+    '#description' => t('Check this box if you would like a Backdrop status message to be displayed to users after submitting an email to let them know it was rerouted to a different email address.'),
     '#states' => array(
       'visible' => array(':input[name=reroute_email_enable]' => array('checked' => TRUE)),
     ),
   );
 
-  return system_settings_form($form);
+  // Add a submit button
+  $form['actions']['#type'] = 'actions';
+  $form['actions']['submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Save configuration'),
+  );
+
+  return $form;
 }
 
 /**
@@ -63,6 +71,19 @@ function reroute_email_settings_validate($form, $form_state) {
       }
     }
   }
+}
+
+/**
+ * Submit handler for reroute_email_settings().
+ */
+function reroute_email_settings_submit($form, &$form_state) {
+  $config = config('reroute_email.settings');
+  $config->set('enable', $form_state['values']['reroute_email_enable']);
+  $config->set('address', $form_state['values']['reroute_email_address']);
+  $config->set('enable_message', $form_state['values']['reroute_email_enable_message']);
+  $config->set('enable_dsm', $form_state['values']['reroute_email_enable_dsm']);
+  $config->save();
+  backdrop_set_message(t('The configuration options have been saved.'));
 }
 
 /**
@@ -110,8 +131,8 @@ function reroute_email_test_email_form_submit(&$form, &$form_state) {
   $to = $form_state['values']['to'];
   $param_keys = array('cc', 'bcc', 'subject', 'body');
   $params = array_intersect_key($form_state['values'], array_flip($param_keys));
-  $message = drupal_mail('reroute_email', 'test_email_form', $to, language_default(), $params);
+  $message = backdrop_mail('reroute_email', 'test_email_form', $to, language_default(), $params);
   if (!empty($message['result'])) {
-    drupal_set_message(t("Test email submitted for delivery."));
+    backdrop_set_message(t("Test email submitted for delivery."));
   }
 }

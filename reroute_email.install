@@ -6,10 +6,20 @@
  */
 
 /**
- * Implements hook_uninstall().
+ * Move reroute_email settings from variables to config.
  */
-function reroute_email_uninstall() {
-  variable_del('reroute_email_address');
-  variable_del('reroute_email_enable');
-  variable_del('reroute_email_enable_message');
+function reroute_email_update_1000() {
+  // Migrate variables to config.
+  $config = config('reroute_email.settings');
+  $config->set('enable', update_variable_get('reroute_email_enable', 0));
+  $config->set('address', update_variable_get('reroute_email_address', null));
+  $config->set('enable_message', update_variable_get('reroute_email_enable_message', 1));
+  $config->set('enable_dsm', update_variable_get('reroute_email_enable_dsm', 1));
+  $config->save();
+
+  // Delete variables.
+  update_variable_del('reroute_email_enable');
+  update_variable_del('reroute_email_address');
+  update_variable_del('reroute_email_enable_message');
+  update_variable_del('reroute_email_enable_dsm');
 }

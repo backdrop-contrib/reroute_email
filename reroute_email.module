@@ -5,17 +5,23 @@
  * Intercepts all outgoing emails to be rerouted to a configurable destination.
  */
 
-define('REROUTE_EMAIL_ADDRESS', 'reroute_email_address');
 define('REROUTE_EMAIL_ADDRESS_EMPTY_PLACEHOLDER', t('[No reroute email address configured]'));
-define('REROUTE_EMAIL_ENABLE_MESSAGE', 'reroute_email_enable_message');
-define('REROUTE_EMAIL_ENABLE', 'reroute_email_enable');
-define('REROUTE_EMAIL_ENABLE_DSM', 'reroute_email_enable_dsm');
 
 // Regular expression used to split email addresses provided in form.
 // This allows the use of any number of spaces, commas, or semicolons
 // between email addresses.
 define('REROUTE_EMAIL_EMAIL_SPLIT_RE', '/[\s,;]+/');
 
+/**
+ * Implements hook_config_info().
+ */
+function reroute_email_config_info() {
+  $prefixes['reroute_email.settings'] = array(
+    'label' => t('Reroute Email settings'),
+    'group' => t('Configuration'),
+  );
+  return $prefixes;
+}
 
 /**
  * Implements hook_module_implements_alter().
@@ -53,7 +59,7 @@ function reroute_email_menu() {
   $items['admin/config/development/reroute_email'] = array(
     'title' => 'Reroute Email',
     'description' => 'Reroute emails to a test address.',
-    'page callback' => 'drupal_get_form',
+    'page callback' => 'backdrop_get_form',
     'page arguments' => array('reroute_email_settings'),
     'access arguments' => array('administer reroute email'),
     'file' => 'reroute_email.admin.inc',
@@ -69,7 +75,7 @@ function reroute_email_menu() {
     'title' => 'Test email form',
     'type' => MENU_LOCAL_TASK,
     'description' => 'Form for sending test email.',
-    'page callback' => 'drupal_get_form',
+    'page callback' => 'backdrop_get_form',
     'page arguments' => array('reroute_email_test_email_form'),
     'access arguments' => array('administer reroute email'),
     'file' => 'reroute_email.admin.inc',
@@ -84,7 +90,9 @@ function reroute_email_menu() {
  * This hook is required to change the destination of outgoing emails.
  */
 function reroute_email_mail_alter(&$message) {
-  if (variable_get(REROUTE_EMAIL_ENABLE, 0)) {
+  $config = config('reroute_email.settings');
+
+  if ($config->get('enable')) {
     global $base_url;
 
     if (empty($message)) {
@@ -126,14 +134,18 @@ function reroute_email_mail_alter(&$message) {
     }
 
     // Split the address string on whitespace, ignoring any empty results.
-    $addresslist = preg_split(REROUTE_EMAIL_EMAIL_SPLIT_RE, variable_get(REROUTE_EMAIL_ADDRESS, variable_get('site_mail', ini_get('sendmail_from'))), -1, PREG_SPLIT_NO_EMPTY);
+    // Set the email address or use default if not present
+    $reroute_email_address = ini_get('sendmail_from');
+    if (!empty(config_get('system.core', 'site_mail'))) $reroute_email_address = config_get('system.core', 'site_mail');
+    if (!empty($config->get('address'))) $reroute_email_address =  $reroute_email_address = $config->get('address');
+    $addresslist = preg_split(REROUTE_EMAIL_EMAIL_SPLIT_RE, $reroute_email_address, -1, PREG_SPLIT_NO_EMPTY);
 
     if (!in_array($to, $addresslist)) {
       // Not on the list, so reroute to the first address in the list.
       $message['headers']['X-Rerouted-Original-To'] = $to;
       $message['to'] = !empty($addresslist[0]) ? $addresslist[0] : REROUTE_EMAIL_ADDRESS_EMPTY_PLACEHOLDER;
 
-      if (variable_get(REROUTE_EMAIL_ENABLE_MESSAGE, 1)) {
+      if ($config->get('enable_message')) {
         // Format a message to show at the top.
         $msg = t("This email was rerouted.") . "\n";
         $msg .= t("Web site: @site", array('@site' => $base_url)) . "\n";
@@ -154,7 +166,7 @@ function reroute_email_mail_alter(&$message) {
       }
     }
     // Abort sending of the email only if the address is an empty string.
-    if (variable_get(REROUTE_EMAIL_ADDRESS, NULL) === '') {
+    if ($config->get('address') === '') {
       $message['send'] = FALSE;
       // Record a variable dump of the email in the recent log entries.
       watchdog('reroute_email', 'Aborted email sending for <em>@message_id</em>. <br/>Detailed email data: Array $message <pre>@message</pre>', array(
@@ -162,11 +174,11 @@ function reroute_email_mail_alter(&$message) {
         '@message' => print_r($message, TRUE),
       ));
       // Let users know email has been aborted, but logged.
-      drupal_set_message(t('<em>@message_id</em> was aborted by reroute email, please check the <a href="@dblog">recent log entries</a> for complete details on the rerouted email.', array('@message_id' => $message['id'], '@dblog' => url('admin/reports/dblog'))));
+      backdrop_set_message(t('<em>@message_id</em> was aborted by reroute email, please check the <a href="@dblog">recent log entries</a> for complete details on the rerouted email.', array('@message_id' => $message['id'], '@dblog' => url('admin/reports/dblog'))));
     }
-    elseif (variable_get(REROUTE_EMAIL_ENABLE_DSM, 1)) {
-      // Display a Drupal status message to let users know email was rerouted.
-      drupal_set_message(t('Submitted email, with ID: <em>@message_id</em>, was rerouted to configured address: <em>@reroute_target</em>. For more details please refer to Reroute Email settings.', array('@message_id' => $message['id'], '@reroute_target' => $message['to'])));
+    elseif ($config->get('enable_dsm')) {
+      // Display a Backdrop status message to let users know email was rerouted.
+      backdrop_set_message(t('Submitted email, with ID: <em>@message_id</em>, was rerouted to configured address: <em>@reroute_target</em>. For more details please refer to Reroute Email settings.', array('@message_id' => $message['id'], '@reroute_target' => $message['to'])));
     }
   }
 }
