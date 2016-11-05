@@ -22,15 +22,17 @@ To enable this module do the following:
 
 Tips and Tricks
 ---------------
-Reroute Email provides configuration variables that you can directly override in the settings.php file of a site. This is useful for moving sites from live to test and vice versa.
+Reroute Email provides configuration variables that you can directly override in the settings.php file of a site. This is useful for moving sites from live to test and vice versa. To override place the following line in the settings.php file for each environment:
 
-To use this variable, you add the following line in the settings.php file for the test environment:
+  `$settings['reroute_email_override'] = TRUE;`
 
-  `$conf['reroute_email_enable'] = 1;`
+To reroute on a test environment you add the following line in the settings.php file:
 
-And for the live site, you set it as follows:
+  `$settings['reroute_email_enable'] = 1;`
 
-  `$conf['reroute_email_enable'] = 0;`
+And for the live environment, you set it as follows:
+
+  `$settings['reroute_email_enable'] = 0;`
 
 Configuration and all the settings variables can be overridden in the settings.php file by copying and pasting the code snippet below and changing the values:
 
@@ -42,16 +44,16 @@ Configuration and all the settings variables can be overridden in the settings.p
  * disabled, change the values below accordingly for your site.
  */
 // Enable email rerouting.
-$conf['reroute_email_enable'] = 1;
+$settings['reroute_email_enable'] = 1;
 // Space, comma, or semicolon-delimited list of email addresses to pass
 // through. Every destination email address which is not on this list will be
 // rerouted to the first address on the list.
-$conf['reroute_email_address'] = "example@example.com";
+$settings['reroute_email_address'] = "example@example.com";
 // Enable inserting a message into the email body when the mail is being
 // rerouted.
-$conf['reroute_email_enable_message'] = 1;
+$settings['reroute_email_enable_message'] = 1;
 // Enable the display of a Backdrop CMS status message after rerouting email.
-$conf['reroute_email_enable_dsm'] = 1;
+$settings['reroute_email_enable_dsm'] = 1;
 ```
 
 Test Email Form
@@ -63,7 +65,12 @@ This form allows sending an email upon submission to the recipients entered in t
 Author
 ------
 Khalid Baheyeldin (http://baheyeldin.com/khalid and http://2bits.com)
+
+License
+-------
 Copyright 2007 Khalid Baheyeldin and http://2bits.com
+
+This project is GPL v2 software. See the LICENSE.txt file in this directory for complete text.
 
 Maintainers
 -----------
@@ -77,4 +84,4 @@ If you use this module, find it useful, and want to send the author a thank you 
 
 The author can also be contacted for paid customizations of this and other modules.
 
-Ported to Backdrop CMS by Herb v/d Dool (https://github.com/herbdool).
+Ported and adapted for Backdrop CMS by Herb v/d Dool (https://github.com/herbdool).

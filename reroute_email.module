@@ -91,8 +91,20 @@ function reroute_email_menu() {
  */
 function reroute_email_mail_alter(&$message) {
   $config = config('reroute_email.settings');
+  $reroute_email_enable = $config->get('enable');
+  $reroute_email_address = $config->get('address');
+  $reroute_email_enable_message = $config->get('enable_message');
+  $reroute_email_enable_dsm = $config->get('enable_dsm');
 
-  if ($config->get('enable')) {
+  $reroute_email_override = settings_get('reroute_email_override');
+  if (isset($reroute_email_override) && $reroute_email_override == TRUE) {
+    $reroute_email_enable = settings_get('reroute_email_enable', $config->get('enable'));
+    $reroute_email_address = settings_get('reroute_email_address', $config->get('address'));
+    $reroute_email_enable_message = settings_get('reroute_email_enable_message', $config->get('enable_message'));
+    $reroute_email_enable_dsm = settings_get('reroute_email_enable_dsm', $config->get('enable_dsm'));
+  }
+
+  if ($reroute_email_enable) {
     global $base_url;
 
     if (empty($message)) {
@@ -135,9 +147,6 @@ function reroute_email_mail_alter(&$message) {
 
     // Split the address string on whitespace, ignoring any empty results.
     // Set the email address or use default if not present
-    $reroute_email_address = ini_get('sendmail_from');
-    if (!empty(config_get('system.core', 'site_mail'))) $reroute_email_address = config_get('system.core', 'site_mail');
-    if (!empty($config->get('address'))) $reroute_email_address =  $reroute_email_address = $config->get('address');
     $addresslist = preg_split(REROUTE_EMAIL_EMAIL_SPLIT_RE, $reroute_email_address, -1, PREG_SPLIT_NO_EMPTY);
 
     if (!in_array($to, $addresslist)) {
@@ -145,7 +154,7 @@ function reroute_email_mail_alter(&$message) {
       $message['headers']['X-Rerouted-Original-To'] = $to;
       $message['to'] = !empty($addresslist[0]) ? $addresslist[0] : REROUTE_EMAIL_ADDRESS_EMPTY_PLACEHOLDER;
 
-      if ($config->get('enable_message')) {
+      if ($reroute_email_enable_message) {
         // Format a message to show at the top.
         $msg = t("This email was rerouted.") . "\n";
         $msg .= t("Web site: @site", array('@site' => $base_url)) . "\n";
@@ -166,7 +175,7 @@ function reroute_email_mail_alter(&$message) {
       }
     }
     // Abort sending of the email only if the address is an empty string.
-    if ($config->get('address') === '') {
+    if (isset($reroute_email_address) && empty($reroute_email_address)) {
       $message['send'] = FALSE;
       // Record a variable dump of the email in the recent log entries.
       watchdog('reroute_email', 'Aborted email sending for <em>@message_id</em>. <br/>Detailed email data: Array $message <pre>@message</pre>', array(
@@ -176,7 +185,7 @@ function reroute_email_mail_alter(&$message) {
       // Let users know email has been aborted, but logged.
       backdrop_set_message(t('<em>@message_id</em> was aborted by reroute email, please check the <a href="@dblog">recent log entries</a> for complete details on the rerouted email.', array('@message_id' => $message['id'], '@dblog' => url('admin/reports/dblog'))));
     }
-    elseif ($config->get('enable_dsm')) {
+    elseif ($reroute_email_enable_dsm) {
       // Display a Backdrop status message to let users know email was rerouted.
       backdrop_set_message(t('Submitted email, with ID: <em>@message_id</em>, was rerouted to configured address: <em>@reroute_target</em>. For more details please refer to Reroute Email settings.', array('@message_id' => $message['id'], '@reroute_target' => $message['to'])));
     }

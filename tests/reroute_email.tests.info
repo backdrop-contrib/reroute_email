@@ -1,5 +1,29 @@
 [RerouteEmailTestCase]
 name = Reroute Email Test
-description = Helper module for the reroute email tests.
-group = Development
+description = Test setting email address for rerouting and sending test emails.
+group = Reroute Email
+file = reroute_email.test
+
+[RerouteEmailContactTestCase]
+name = Site-wide Core Contact form email rerouting
+description = Test Reroute Email module's ability to reroute mail sent from the Core Contact module forms.
+group = Reroute Email
+file = reroute_email.test
+
+[RerouteEmailTestEmailTestCase]
+name = Test email form
+description = Test Reroute Email's form for sending a test email.
+group = Reroute Email
+file = reroute_email.test
+
+[RerouteEmailSpecialTestCase]
+name = Body as a string and robust headers
+description = Support message's body passed as a string and Cc/Bcc header keys with an unexpected case.
+group = Reroute Email
+file = reroute_email.test
+
+[RerouteEmailDefaultAddressTestCase]
+name = Default or empty reroute destination email address
+description = When reroute email addresses field is not configured, attempt to use the site email address, otherwise use sendmail_from system variable.
+group = Reroute Email
 file = reroute_email.test

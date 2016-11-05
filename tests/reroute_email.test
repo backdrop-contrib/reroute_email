@@ -62,17 +62,13 @@ class RerouteEmailTestCase extends BackdropWebTestCase {
    *
    * @param string $reroute_destination
    *   (optional) The email address to which emails should be rerouted.
-   *   Defaults to $this->rerouteDestination if set to NULL.
    * @param bool $reroute_email_enable
    *   (optional) Set to TRUE to enable email Rerouting, defaults to TRUE.
    * @param bool $reroute_email_enable_message
    *   (optional) Set to TRUE to show rerouting description, defaults to TRUE.
    */
-  public function configureRerouteEmail($reroute_destination = NULL, $reroute_email_enable = TRUE, $reroute_email_enable_message = TRUE, $reroute_email_enable_dsm = TRUE) {
-    // Initialize $reroute_destination by default if no value is provided.
-    if (!isset($reroute_destination)) {
-      $reroute_destination = $this->rerouteDestination;
-    }
+  public function configureRerouteEmail($reroute_destination = '', $reroute_email_enable = TRUE, $reroute_email_enable_message = TRUE, $reroute_email_enable_dsm = TRUE) {
+
     // Configure to Reroute Email settings form.
     $post = array(
       'reroute_email_address' => $reroute_destination,
@@ -116,17 +112,6 @@ class RerouteEmailTestCase extends BackdropWebTestCase {
 class RerouteEmailContactTestCase extends RerouteEmailTestCase {
 
   /**
-   * Implements BackdropWebTestCase::getInfo().
-   */
-  public static function getInfo() {
-    return array(
-      'name' => 'Site-wide Core Contact form email rerouting',
-      'description' => "Test Reroute Email module's ability to reroute mail sent from the Core Contact module forms.",
-      'group' => 'Reroute Email',
-    );
-  }
-
-  /**
    * Enable modules and create user with specific permissions.
    */
   public function setUp() {
@@ -149,10 +134,10 @@ class RerouteEmailContactTestCase extends RerouteEmailTestCase {
     $additional_destination = "additional@example.com";
 
     // Configure to reroute normally to rerouted@example.com.
-    $this->configureRerouteEmail();
+    $this->configureRerouteEmail($this->rerouteDestination);
 
     // Configure the contact settings to send to $original_destination.
-    $this->backdropPost('admin/structure/contact/edit/1', array('recipients' => $this->originalDestination), t('Save'));
+    $this->backdropPost('admin/structure/contact/configure/1', array('recipients' => $this->originalDestination), t('Save'));
 
     // Go to the contact page and send an email.
     $post = array('subject' => "Test test test", 'message' => 'This is a test');
@@ -176,7 +161,7 @@ class RerouteEmailContactTestCase extends RerouteEmailTestCase {
     $this->configureRerouteEmail("{$this->rerouteDestination}, $additional_destination");
 
     // Configure the contact settings to point to the additional recipient.
-    $this->backdropPost('admin/structure/contact/edit/1', array('recipients' => $additional_destination), t('Save'));
+    $this->backdropPost('admin/structure/contact/configure/1', array('recipients' => $additional_destination), t('Save'));
 
     // Go to the contact page and send an email.
     $post = array('subject' => "Test test test", 'message' => 'This is a test');
@@ -188,10 +173,10 @@ class RerouteEmailContactTestCase extends RerouteEmailTestCase {
 
     // Now change the configuration to disable reroute and set the original
     // email recipients.
-    $this->configureRerouteEmail(NULL, FALSE);
+    $this->configureRerouteEmail($this->rerouteDestination, FALSE);
 
     // Set the contact form to send to original_destination.
-    $this->backdropPost('admin/structure/contact/edit/1', array('recipients' => $this->originalDestination), t('Save'));
+    $this->backdropPost('admin/structure/contact/configure/1', array('recipients' => $this->originalDestination), t('Save'));
     // Go to the contact page and send an email.
     $post = array('subject' => "Test test test", 'message' => 'This is a test');
     $this->backdropPost("contact", $post, t("Send message"));
@@ -208,7 +193,7 @@ class RerouteEmailContactTestCase extends RerouteEmailTestCase {
     $this->verbose(t("Email 'to' was: <pre>@mail_to</pre>", array('@mail_to' => $mail['to'])));
 
     // Configure to reroute without body injection and without status message.
-    $this->configureRerouteEmail(NULL, TRUE, FALSE, FALSE);
+    $this->configureRerouteEmail($this->rerouteDestination, TRUE, FALSE, FALSE);
 
     // Go to the contact page and send an email.
     $post = array('subject' => "Test test test", 'message' => 'This is a test');
@@ -234,17 +219,6 @@ class RerouteEmailContactTestCase extends RerouteEmailTestCase {
 class RerouteEmailTestEmailTestCase extends RerouteEmailTestCase {
 
   /**
-   * Implements BackdropWebTestCase::getInfo().
-   */
-  public static function getInfo() {
-    return array(
-      'name' => 'Test Email form',
-      'description' => "Test Reroute Email's form for sending a test email.",
-      'group' => 'Reroute Email',
-    );
-  }
-
-  /**
    * Basic tests for reroute_email Test Email form.
    *
    * Check if submitted form values are properly submitted and rerouted.
@@ -254,7 +228,7 @@ class RerouteEmailTestEmailTestCase extends RerouteEmailTestCase {
   public function testFormTestEmail() {
 
     // Configure to reroute normally to rerouted@example.com.
-    $this->configureRerouteEmail();
+    $this->configureRerouteEmail($this->rerouteDestination);
 
     // Check Subject field default value.
     $this->backdropGet("admin/config/development/reroute_email/test");
@@ -312,7 +286,7 @@ class RerouteEmailTestEmailTestCase extends RerouteEmailTestCase {
 
     // Now change the configuration to disable reroute and submit the Test
     // Email form with the same invalid email address values.
-    $this->configureRerouteEmail(NULL, FALSE);
+    $this->configureRerouteEmail($this->rerouteDestination, FALSE);
 
     // Submit the test email form again with previously used invalid addresses.
     $this->backdropPost("admin/config/development/reroute_email/test", $post, t("Send email"));
@@ -332,17 +306,6 @@ class RerouteEmailTestEmailTestCase extends RerouteEmailTestCase {
  * Test handling of special cases for body as a string and Cc/Bcc robustness.
  */
 class RerouteEmailSpecialTestCase extends RerouteEmailTestCase {
-
-  /**
-   * Implements BackdropWebTestCase::getInfo().
-   */
-  public static function getInfo() {
-    return array(
-      'name' => 'Body as a string and robust headers',
-      'description' => "Support message's body passed as a string and Cc/Bcc header keys with an unexpected case.",
-      'group' => 'Reroute Email',
-    );
-  }
 
   /**
    * Enable modules and create user with specific permissions.
@@ -368,7 +331,7 @@ class RerouteEmailSpecialTestCase extends RerouteEmailTestCase {
     $test_bcc_key = 'bCc';
 
     // Configure to reroute normally to rerouted@example.com.
-    $this->configureRerouteEmail();
+    $this->configureRerouteEmail($this->rerouteDestination);
 
     // Print test email values for comparing values on test results page.
     $test_message = array(
@@ -414,17 +377,6 @@ class RerouteEmailSpecialTestCase extends RerouteEmailTestCase {
 class RerouteEmailDefaultAddressTestCase extends RerouteEmailTestCase {
 
   /**
-   * Implements BackdropWebTestCase::getInfo().
-   */
-  public static function getInfo() {
-    return array(
-      'name' => 'Default or empty reroute destination email address',
-      'description' => "When reroute email addresses field is not configured, attempt to use the site email address, otherwise use sendmail_from system variable.",
-      'group' => 'Reroute Email',
-    );
-  }
-
-  /**
    * Enable modules and create user with specific permissions.
    */
   public function setUp() {
@@ -434,70 +386,48 @@ class RerouteEmailDefaultAddressTestCase extends RerouteEmailTestCase {
   }
 
   /**
-   * Test reroute email address is set to site_mail, sendmail_from or empty.
+   * Test reroute email address is set to empty.
    *
-   * When reroute email addresses field is not configured and settings haven't
-   * been configured yet, check if the site email address or the sendmail_from
-   * system variable are properly used as fallbacks. Additionally, check that
-   * emails are aborted and a watchdog entry logged if reroute email address is
-   * set to an empty string.
+   * By default the address will be empty and send emails to the watchdog.
+   * Two suggested email addresses are the site email address and the sendmail_from
+   * system variable so check that they are properly used as fallbacks. Additionally,
+   * check that emails are aborted and a watchdog entry logged if reroute email
+   * address is set to an empty string.
    */
   public function testRerouteDefaultAddress() {
     $config = config('reroute_email.settings');
-    
-    // Check default value for reroute_email_address when not configured.
-    // If Site email is not empty, it should be the default value.
-    $default_destination = config_get('system.core', 'site_mail');
-    $this->assertTrue(isset($default_destination), format_string('Site mail is not empty: @default_destination.', array('@default_destination' => $default_destination)));
 
     // Programmatically enable email rerouting.
-    variable_set(REROUTE_EMAIL_ENABLE, TRUE);
+    $config->set('enable', TRUE);
+    $config->save();
+
     // Load the Reroute Email Settings form page. Ensure rerouting is enabled.
     $this->backdropGet("admin/config/development/reroute_email/reroute_email");
-    $this->assertFieldByName(REROUTE_EMAIL_ENABLE, TRUE, 'Email rerouting was programmatically successfully enabled.');
-    // Check Email addresses field default value should be site_mail.
-    $this->assertFieldByName(REROUTE_EMAIL_ADDRESS, $default_destination, format_string('Site email address is configured and is the default value of the Email addresses field: @default_destination.', array('@default_destination' => $default_destination)));
+    $this->assertFieldByName('reroute_email_enable', TRUE, 'Email rerouting was programmatically successfully enabled.');
 
-    // Ensure reroute_email_address is not set yet.
-    $reroute_email_address = variable_get(REROUTE_EMAIL_ADDRESS, NULL);
-    $this->assertFalse(isset($reroute_email_address), 'Reroute email destination address is not configured.');
+    // Configure reroute email address to be empty: ensure emails are aborted.
+    $this->configureRerouteEmail($this->rerouteDestination);
 
-    // Submit a test email and check if it is rerouted to site_mail address.
-    $this->backdropPost("admin/config/development/reroute_email/test", array('to' => "to@example.com"), t("Send email"));
-    $this->assertText(t("Test email submitted for delivery."));
-    $mails = $this->backdropGetMails();
-    $mail = end($mails);
-    // Check rerouted email is the site email address.
-    $this->assertMail('to', $default_destination, format_string('Email was properly rerouted to site email address: @default_destination.', array('@default_destination' => $default_destination)));
-
-    // Now unset site_mail to check if system sendmail_from is properly used.
-    config_set('system.core', 'site_mail', '');
-    // If it is defined, try to test the default sendmail_from system variable.
-    $system_email = ini_get('sendmail_from');
-    // Fallback to default placeholder if no system variable configured.
-    $default_destination = empty($system_email) ? REROUTE_EMAIL_ADDRESS_EMPTY_PLACEHOLDER : $system_email;
-
-    // Reload the Reroute Email Settings form page.
-    $this->backdropGet("admin/config/development/reroute_email/reroute_email");
-    // Check Email addresses field default value should be system default.
-    $this->assertFieldByName('reroute_email_address', $system_email, format_string('Site email address is not configured, Email addresses field defaults to system sendmail_from: <em>@default_destination</em>.', array('@default_destination' => $system_email)));
+    // Check Email addresses field default value should be test default.
+    $this->assertFieldByName('reroute_email_address', $this->rerouteDestination, format_string('Site email address is not configured, Email addresses field defaults to system sendmail_from: <em>@default_destination</em>.', array('@default_destination' => $this->rerouteDestination)));
 
     // Submit a test email to check if it is rerouted to sendmail_from address.
     $this->backdropPost("admin/config/development/reroute_email/test", array('to' => "to@example.com"), t("Send email"));
     $this->assertText(t("Test email submitted for delivery."));
     $mails = $this->backdropGetMails();
     $mail = end($mails);
-    // Check rerouted email is the system sendmail_from email address.
-    $this->assertMail('to', $default_destination, format_string('Email was properly rerouted to system sendmail_from email address: @default_destination.', array('@default_destination' => $default_destination)));
 
-    // Configure reroute email address to be emtpy: ensure emails are aborted.
+    // Check rerouted email is the test default email address.
+    $this->assertMail('to', $this->rerouteDestination, format_string('Email was properly rerouted to system sendmail_from email address: @default_destination.', array('@default_destination' => $this->rerouteDestination)));
+
+    // Configure reroute email address to be empty: ensure emails are aborted.
     $this->configureRerouteEmail('');
 
     // Make sure reroute_email_address variable is an empty string.
-    $reroute_email_address = variable_get(REROUTE_EMAIL_ADDRESS, NULL);
-    $this->assertTrue(is_string($reroute_email_address), 'Reroute email destination address is configured to be an empty string.');
+    $reroute_email_address = $config->get('address');
+    $this->assertTrue(($reroute_email_address == ''), format_string('Reroute email destination address is configured to be empty: @reroute_email_address.', array('@reroute_email_address' => $reroute_email_address)));
     // Flush the Test Mail collector to ensure it is empty for this tests.
-    variable_set('backdrop_test_email_collector', array());
+    state_set('test_email_collector', array());
 
     // Submit a test email to check if it is aborted.
     $this->backdropPost("admin/config/development/reroute_email/test", array('to' => "to@example.com"), t("Send email"));
