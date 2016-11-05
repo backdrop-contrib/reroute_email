@@ -1,4 +1,4 @@
-name = Reroute emails
+name = Reroute email
 description = Reroutes emails send from the site to a predefined email. Useful for test sites.
 package = Development
 backdrop = 1.x
