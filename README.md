@@ -62,26 +62,19 @@ Reroute Email also provides a convenient form for testing email sending or rerou
 
 This form allows sending an email upon submission to the recipients entered in the fields To, Cc and Bcc, which is very practical for testing if emails are correctly rerouted to the configured addresses.
 
-Author
-------
-Khalid Baheyeldin (http://baheyeldin.com/khalid and http://2bits.com)
-
 License
 -------
-Copyright 2007 Khalid Baheyeldin and http://2bits.com
-
 This project is GPL v2 software. See the LICENSE.txt file in this directory for complete text.
 
 Maintainers
 -----------
 
+Looking for maintainers for Backdrop.
+
 Maintainers of Drupal 7 version:
 
+* Khalid Baheyeldin (http://baheyeldin.com/khalid and http://2bits.com) (original author)
 * rfay (http://drupal.org/user/30906)
 * DYdave (http://drupal.org/user/467284)
-
-If you use this module, find it useful, and want to send the author a thank you note, then use the Feedback/Contact page at the URL above.
-
-The author can also be contacted for paid customizations of this and other modules.
 
 Ported and adapted for Backdrop CMS by Herb v/d Dool (https://github.com/herbdool).
