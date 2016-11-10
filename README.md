@@ -43,6 +43,7 @@ Configuration and all the settings variables can be overridden in the settings.p
  * To override specific variables and ensure that email rerouting is enabled or
  * disabled, change the values below accordingly for your site.
  */
+$settings['reroute_email_override'] = TRUE;
 // Enable email rerouting.
 $settings['reroute_email_enable'] = 1;
 // Space, comma, or semicolon-delimited list of email addresses to pass
