@@ -49,6 +49,7 @@ $settings['reroute_email_enable'] = 1;
 // Space, comma, or semicolon-delimited list of email addresses to pass
 // through. Every destination email address which is not on this list will be
 // rerouted to the first address on the list.
+// If the address is left empty then all emails will be logged in the watchdog.
 $settings['reroute_email_address'] = "example@example.com";
 // Enable inserting a message into the email body when the mail is being
 // rerouted.
